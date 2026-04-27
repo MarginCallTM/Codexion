@@ -1,0 +1,392 @@
+================================================================================
+                      CODEXION - ROADMAP DE REALISATION
+================================================================================
+
+Le projet est une variante du probleme des Philosophes Dinants avec :
+  - 3 etats au lieu de 2 (compile / debug / refactor)
+  - Cooldown sur les ressources (dongles)
+  - Deux politiques de scheduling configurables (fifo / edf)
+  - Une priority queue (heap) custom obligatoire
+  - Un thread monitor dedie a la detection du burnout (precision <10ms)
+  - Garantie de liveness (pas de famine en edf)
+
+================================================================================
+PHASE 1 - SETUP DU PROJET
+================================================================================
+
+[X] 1.1 Creer la structure des dossiers
+    [X] 1.1.1 src/   -> sources .c
+    [X] 1.1.2 inc/   -> headers .h
+    [X] 1.1.3 obj/   -> fichiers objets generes
+    [-] 1.1.4 (optionnel) tests/ pour les scripts de test (a creer plus tard)
+
+[X] 1.2 Ecrire le Makefile
+    [X] 1.2.1 Variables : NAME=codexion, CC=cc,
+              CFLAGS=-Wall -Wextra -Werror -pthread
+    [X] 1.2.2 Regle all (= $(NAME))
+    [X] 1.2.3 Regle $(NAME) : link des .o
+    [X] 1.2.4 Regle pattern obj/%.o : src/%.c $(HEADERS) -> compile en .o
+    [X] 1.2.5 Regle clean (supprime obj/)
+    [X] 1.2.6 Regle fclean (clean + supprime $(NAME))
+    [X] 1.2.7 Regle re (fclean + all)
+    [X] 1.2.8 .PHONY: all clean fclean re
+    [X] 1.2.9 Pas de relink inutile (verifier avec make 2 fois de suite)
+
+[ ] 1.3 Creer le header principal codexion.h
+    [X] 1.3.1 Includes systeme : pthread.h, stdio.h, stdlib.h, string.h,
+              sys/time.h, unistd.h, errno.h
+    [ ] 1.3.2 Defines / enum pour les etats : COMPILING, DEBUGGING, REFACTORING
+    [ ] 1.3.3 Defines / enum pour le scheduler : SCHED_FIFO_, SCHED_EDF
+    [ ] 1.3.4 Prototypes des fonctions publiques
+
+================================================================================
+PHASE 2 - PARSING ET VALIDATION DES ARGUMENTS
+================================================================================
+
+[ ] 2.1 Verifier le nombre d arguments (8 obligatoires + argv[0])
+
+[ ] 2.2 Implementer un atoi safe
+    [ ] 2.2.1 Refuser les chaines vides
+    [ ] 2.2.2 Refuser les caracteres non numeriques
+    [ ] 2.2.3 Refuser les overflows (verifier avant multiplication)
+    [ ] 2.2.4 Refuser les nombres negatifs (sauf si la regle l autorise)
+
+[ ] 2.3 Parser les 7 entiers :
+        number_of_coders, time_to_burnout, time_to_compile, time_to_debug,
+        time_to_refactor, number_of_compiles_required, dongle_cooldown
+
+[ ] 2.4 Parser le 8e argument scheduler
+    [ ] 2.4.1 Comparer avec strcmp a "fifo" ou "edf"
+    [ ] 2.4.2 Stocker dans un enum
+
+[ ] 2.5 Cas limites a gerer
+    [ ] 2.5.1 number_of_coders == 0 -> rejeter
+    [ ] 2.5.2 number_of_coders == 1 -> 1 seul dongle, impossible de compiler
+              (a clarifier : doit-on quand meme tourner ? brulera forcement)
+    [ ] 2.5.3 number_of_compiles_required == 0 -> arret immediat ?
+
+[ ] 2.6 Stocker dans une struct t_config (pas de variables globales)
+
+================================================================================
+PHASE 3 - STRUCTURES DE DONNEES PRINCIPALES
+================================================================================
+
+[ ] 3.1 t_config : configuration immuable
+    [ ] 3.1.1 Tous les arguments parses
+
+[ ] 3.2 t_dongle : un dongle = mutex + etat + timestamp de derniere release
+    [ ] 3.2.1 pthread_mutex_t mutex
+    [ ] 3.2.2 int taken (booleen)
+    [ ] 3.2.3 long long released_at_ms (pour le cooldown)
+    [ ] 3.2.4 t_pqueue *waiters (file d attente locale au dongle)
+    [ ] 3.2.5 pthread_cond_t cond (pour reveiller les attendants)
+
+[ ] 3.3 t_coder : etat d un coder
+    [ ] 3.3.1 int id
+    [ ] 3.3.2 pthread_t thread
+    [ ] 3.3.3 int state (compile/debug/refactor)
+    [ ] 3.3.4 long long last_compile_start_ms
+    [ ] 3.3.5 int compiles_done
+    [ ] 3.3.6 t_dongle *left, *right
+    [ ] 3.3.7 t_sim *sim (back-pointer)
+
+[ ] 3.4 t_sim : etat global de la simulation (passe en parametre, pas global)
+    [ ] 3.4.1 t_config config
+    [ ] 3.4.2 t_coder *coders
+    [ ] 3.4.3 t_dongle *dongles
+    [ ] 3.4.4 long long start_ms (debut de la simulation)
+    [ ] 3.4.5 int stop (booleen, lu/ecrit sous mutex)
+    [ ] 3.4.6 pthread_mutex_t stop_mutex
+    [ ] 3.4.7 pthread_mutex_t log_mutex (serialisation des prints)
+    [ ] 3.4.8 pthread_mutex_t coder_state_mutex (protege last_compile_start
+              et compiles_done)
+    [ ] 3.4.9 long long ticket_counter (pour FIFO global)
+
+================================================================================
+PHASE 4 - IMPLEMENTATION DE LA PRIORITY QUEUE (HEAP)
+================================================================================
+
+[ ] 4.1 Definir t_pqueue
+    [ ] 4.1.1 t_pqnode *data (tableau dynamique)
+    [ ] 4.1.2 size_t size, capacity
+    [ ] 4.1.3 (fonction de comparaison passee en parametre OU
+              champ scheduler dans la queue pour choisir la cle)
+
+[ ] 4.2 Definir t_pqnode
+    [ ] 4.2.1 int coder_id
+    [ ] 4.2.2 long long key (ticket FIFO ou deadline EDF)
+    [ ] 4.2.3 long long tiebreak (coder_id pour determinisme)
+
+[ ] 4.3 Implementer pq_init / pq_destroy
+
+[ ] 4.4 Implementer pq_push (avec resize si plein)
+    [ ] 4.4.1 Ajouter en fin de tableau
+    [ ] 4.4.2 sift_up
+
+[ ] 4.5 Implementer pq_peek (regarde sans retirer)
+
+[ ] 4.6 Implementer pq_pop
+    [ ] 4.6.1 Recuperer le sommet
+    [ ] 4.6.2 Mettre le dernier element en sommet
+    [ ] 4.6.3 sift_down
+
+[ ] 4.7 Implementer pq_remove(coder_id) (utile pour annulation)
+
+[ ] 4.8 Tester la priority queue isolement avec un main de test
+
+================================================================================
+PHASE 5 - SYSTEME DE LOG SERIALISE
+================================================================================
+
+[ ] 5.1 Fonction log_event(t_sim *sim, int coder_id, const char *msg)
+    [ ] 5.1.1 Lock log_mutex
+    [ ] 5.1.2 Calculer le timestamp relatif depuis sim->start_ms
+    [ ] 5.1.3 printf("%lld %d %s\n", ts, coder_id, msg)
+    [ ] 5.1.4 Verifier sim->stop avant pour eviter les logs apres burnout
+              (sauf le burnout lui-meme)
+    [ ] 5.1.5 Unlock log_mutex
+
+[ ] 5.2 Wrappers : log_taken_dongle, log_compiling, log_debugging,
+        log_refactoring, log_burned_out
+
+[ ] 5.3 Verifier que les chaines exactes correspondent au sujet :
+        "has taken a dongle", "is compiling", "is debugging",
+        "is refactoring", "burned out"
+
+================================================================================
+PHASE 6 - HELPERS DE TEMPS
+================================================================================
+
+[ ] 6.1 long long now_ms(void) -> retourne ms epoch via gettimeofday
+
+[ ] 6.2 long long elapsed_ms(t_sim *sim) -> now_ms() - sim->start_ms
+
+[ ] 6.3 void precise_sleep_ms(long long ms, t_sim *sim)
+    [ ] 6.3.1 Boucle d usleep par petits incrementss
+              (ex: 100 us) jusqu a atteindre la cible
+    [ ] 6.3.2 Verifier sim->stop a chaque iteration pour sortir vite
+
+[ ] 6.4 Helper pour construire une struct timespec absolue a partir de
+        maintenant + delta_ms (utile pour pthread_cond_timedwait)
+
+================================================================================
+PHASE 7 - GESTION DES DONGLES
+================================================================================
+
+[ ] 7.1 dongle_init / dongle_destroy
+
+[ ] 7.2 dongle_request(t_coder *coder, t_dongle *d)
+    [ ] 7.2.1 Lock d->mutex
+    [ ] 7.2.2 Calculer la cle de priorite selon le scheduler :
+              - FIFO : ticket = sim->ticket_counter++ sous lock
+              - EDF  : deadline = last_compile_start + time_to_burnout
+    [ ] 7.2.3 pq_push(d->waiters, coder->id, key)
+    [ ] 7.2.4 Boucle while (!can_take(d, coder)) :
+                pthread_cond_wait(&d->cond, &d->mutex)
+              can_take = !d->taken && cooldown_elapsed
+                         && pq_peek(d->waiters) == coder->id
+    [ ] 7.2.5 pq_remove(d->waiters, coder->id)
+    [ ] 7.2.6 d->taken = 1
+    [ ] 7.2.7 log_taken_dongle
+    [ ] 7.2.8 Unlock d->mutex
+
+[ ] 7.3 dongle_release(t_dongle *d)
+    [ ] 7.3.1 Lock d->mutex
+    [ ] 7.3.2 d->taken = 0
+    [ ] 7.3.3 d->released_at_ms = now_ms()
+    [ ] 7.3.4 pthread_cond_broadcast(&d->cond)
+    [ ] 7.3.5 Unlock d->mutex
+
+[ ] 7.4 Decision sur la prevention de deadlock
+    [ ] 7.4.1 Choisir une strategie definitive :
+              option A : ordre par adresse (toujours lock le mutex
+                         d adresse plus basse en premier)
+              option B : asymetrie (pair = gauche d abord, impair = droite)
+              option C : prise atomique via un mutex global de
+                         "table" pendant l acquisition
+    [ ] 7.4.2 Documenter le choix dans le README
+
+[ ] 7.5 Gestion du cooldown
+    [ ] 7.5.1 Quand un dongle vient d etre release,
+              now - released_at < cooldown -> ne pas l accorder
+    [ ] 7.5.2 Utiliser pthread_cond_timedwait pour ne pas attendre
+              passivement plus que necessaire
+
+================================================================================
+PHASE 8 - LOGIQUE DU THREAD CODER
+================================================================================
+
+[ ] 8.1 void *coder_routine(void *arg)
+    [ ] 8.1.1 Recuperer le t_coder
+    [ ] 8.1.2 Initialiser last_compile_start_ms = sim->start_ms
+              (regle du sujet : depuis le debut de la simulation)
+    [ ] 8.1.3 Boucle tant que !sim->stop &&
+              compiles_done < number_of_compiles_required :
+              (a) acquerir gauche
+              (b) acquerir droite  (selon strategie anti-deadlock)
+              (c) marquer last_compile_start sous coder_state_mutex
+              (d) log "is compiling"
+              (e) precise_sleep_ms(time_to_compile)
+              (f) compiles_done++ sous coder_state_mutex
+              (g) liberer les 2 dongles (libere droite puis gauche, ou
+                  inverse)
+              (h) log "is debugging" + sleep time_to_debug
+              (i) log "is refactoring" + sleep time_to_refactor
+              (j) recommencer
+    [ ] 8.1.4 Sortir proprement si sim->stop devient vrai
+
+================================================================================
+PHASE 9 - THREAD MONITOR (DETECTION DU BURNOUT)
+================================================================================
+
+[ ] 9.1 void *monitor_routine(void *arg)
+    [ ] 9.1.1 Boucle while (!sim->stop) :
+              (a) Pour chaque coder :
+                  - lock coder_state_mutex
+                  - calculer since_last_compile = now - last_compile_start
+                  - unlock
+                  - si since_last_compile > time_to_burnout :
+                      lock log_mutex
+                      log_burned_out (toujours, meme si stop deja vrai)
+                      set sim->stop = 1
+                      unlock log_mutex
+                      pthread_cond_broadcast sur tous les dongles
+                      return
+              (b) Verifier la condition de fin :
+                  si tous compiles_done >= required -> sim->stop = 1
+              (c) usleep(1000) (ou moins, < 10 ms pour respecter la
+                  precision)
+
+[ ] 9.2 Le monitor doit reveiller les coders bloques en cond_wait
+        quand stop devient vrai (broadcast sur tous les dongles)
+
+================================================================================
+PHASE 10 - MAIN, INITIALISATION ET CLEANUP
+================================================================================
+
+[ ] 10.1 main(argc, argv)
+     [ ] 10.1.1 parse_args -> t_config
+     [ ] 10.1.2 sim_init -> alloue coders, dongles, mutexes, conds
+     [ ] 10.1.3 sim->start_ms = now_ms()
+     [ ] 10.1.4 lancer le thread monitor en premier
+     [ ] 10.1.5 lancer un thread par coder (avec un petit usleep entre
+                pour eviter qu ils prennent tous le ticket 0 en meme temps,
+                ou bien rendre l ordre deterministe)
+     [ ] 10.1.6 pthread_join sur tous les coders
+     [ ] 10.1.7 pthread_join sur le monitor
+     [ ] 10.1.8 sim_destroy -> destroy mutexes, conds, free memoire
+
+[ ] 10.2 Verifier zero memory leak avec valgrind --leak-check=full
+
+[ ] 10.3 Verifier zero data race avec valgrind --tool=helgrind
+         (les warnings sur cond_broadcast sont parfois normaux)
+
+================================================================================
+PHASE 11 - TESTS
+================================================================================
+
+[ ] 11.1 Cas qui doivent passer (pas de burnout) :
+     [ ] 11.1.1 ./codexion 5 800 200 200 200 5 0 fifo
+     [ ] 11.1.2 ./codexion 4 410 200 200 200 10 0 fifo
+     [ ] 11.1.3 ./codexion 5 800 200 200 200 7 0 edf
+     [ ] 11.1.4 ./codexion 1 800 200 200 200 5 0 fifo
+                (1 seul coder -> impossible de prendre 2 dongles ?
+                 a clarifier selon ta lecture du sujet)
+
+[ ] 11.2 Cas qui doivent burnout rapidement :
+     [ ] 11.2.1 ./codexion 4 310 200 100 100 5 0 fifo
+     [ ] 11.2.2 ./codexion 4 200 150 50 50 10 0 fifo
+
+[ ] 11.3 Cas avec cooldown long
+     [ ] 11.3.1 ./codexion 5 1000 100 100 100 10 200 edf
+
+[ ] 11.4 Tests d entrees invalides (doivent afficher une erreur, pas crash)
+     [ ] 11.4.1 args manquants
+     [ ] 11.4.2 args negatifs
+     [ ] 11.4.3 args non numeriques
+     [ ] 11.4.4 scheduler != fifo / edf
+     [ ] 11.4.5 args avec '+' ou espaces
+
+[ ] 11.5 Verifier le format de log
+     [ ] 11.5.1 Aucun log entrelace (chaque ligne complete)
+     [ ] 11.5.2 Le burnout apparait < 10 ms apres l instant theorique
+     [ ] 11.5.3 Aucun log apres "burned out" (sauf eventuellement les
+                logs deja en cours d ecriture serialises)
+
+[ ] 11.6 Tests de stress
+     [ ] 11.6.1 100 coders, valeurs basses
+     [ ] 11.6.2 Verifier qu il n y a ni starvation ni deadlock
+
+================================================================================
+PHASE 12 - README.md
+================================================================================
+
+[ ] 12.1 Premiere ligne en italique :
+         *This project has been created as part of the 42 curriculum by <login>.*
+
+[ ] 12.2 Section Description (anglais)
+
+[ ] 12.3 Section Instructions
+     [ ] 12.3.1 Compilation : make
+     [ ] 12.3.2 Usage : ./codexion <args>
+     [ ] 12.3.3 Exemples avec sortie attendue
+
+[ ] 12.4 Section Resources
+     [ ] 12.4.1 Liens : Dijkstra Dining Philosophers, man pthread,
+                heap binaire, EDF scheduling
+     [ ] 12.4.2 Description claire de l usage de l IA pour quelles taches
+
+[ ] 12.5 Section Blocking cases handled (obligatoire)
+     [ ] 12.5.1 Deadlock prevention (Coffman conditions)
+     [ ] 12.5.2 Starvation prevention
+     [ ] 12.5.3 Cooldown handling
+     [ ] 12.5.4 Precise burnout detection (<10 ms)
+     [ ] 12.5.5 Log serialization
+
+[ ] 12.6 Section Thread synchronization mechanisms (obligatoire)
+     [ ] 12.6.1 pthread_mutex_t : sur quelles donnees, pourquoi
+     [ ] 12.6.2 pthread_cond_t  : sur quelles attentes, pourquoi
+     [ ] 12.6.3 Exemples concrets de race conditions evitees
+     [ ] 12.6.4 Comment coders et monitor communiquent de maniere safe
+
+================================================================================
+PHASE 13 - REVUE FINALE
+================================================================================
+
+[ ] 13.1 Verifier la conformite a la Norme 42 (norminette)
+[ ] 13.2 Aucune variable globale
+[ ] 13.3 Aucune fonction interdite (verifier la liste autorisee)
+[ ] 13.4 -Wall -Wextra -Werror -pthread -> 0 warning
+[ ] 13.5 make / make clean / make fclean / make re fonctionnent
+[ ] 13.6 Pas de relink inutile
+[ ] 13.7 Pas de leak (valgrind)
+[ ] 13.8 Pas de data race detectable (helgrind)
+[ ] 13.9 Lecture critique du code par un pair (recommandation du sujet)
+[ ] 13.10 Preparer la defense : etre capable d expliquer
+          - chaque mutex et son role
+          - chaque cond_var et son role
+          - la prevention du deadlock
+          - la prevention de la starvation
+          - le fonctionnement du heap
+          - la difference FIFO/EDF dans le code
+
+================================================================================
+ANNEXE - PIEGES CLASSIQUES A NE PAS OUBLIER
+================================================================================
+
+* Toujours wrapper cond_wait dans un while (!condition), jamais un if
+* cond_wait libere et reprend le mutex, ne PAS unlock avant
+* Le sujet n autorise QUE pthread_cond_broadcast (pas cond_signal),
+  donc tout reveil sera collectif -> les coders doivent re-tester leur
+  condition
+* La precision du sleep est critique : usleep n est pas garanti, faire
+  une boucle avec verification du temps reel
+* Initialiser last_compile_start au debut de la simulation, pas a 0,
+  sinon tous les coders seront immediatement en burnout
+* Liberer les dongles en sens inverse de l acquisition pour eviter
+  les inversions de priorite dans la file d attente
+* Le monitor doit lire last_compile_start sous mutex (sinon torn read
+  sur 64 bits possible selon archi)
+* Pour 1 seul coder : il y a 1 seul dongle sur la table (pas 2),
+  donc le coder ne peut jamais compiler -> il finira par burnout.
+  C est le comportement attendu, ne pas le forcer a un cas special.

@@ -95,7 +95,7 @@ PHASE 3 - STRUCTURES DE DONNEES PRINCIPALES
     [X] 3.3.6 t_dongle *left, *right
     [X] 3.3.7 t_sim *sim (back-pointer)
 
-[~] 3.4 t_sim : etat global de la simulation (passe en parametre, pas global)
+[X] 3.4 t_sim : etat global de la simulation (passe en parametre, pas global)
     [X] 3.4.1 t_config config
     [X] 3.4.2 t_coder *coders
     [X] 3.4.3 t_dongle *dongles
@@ -105,9 +105,7 @@ PHASE 3 - STRUCTURES DE DONNEES PRINCIPALES
     [X] 3.4.7 pthread_mutex_t log_mutex (serialisation des prints)
     [X] 3.4.8 pthread_mutex_t coder_state_mutex (protege last_compile_start
               et compiles_done)
-    [!] 3.4.9 long long ticket_counter (pour FIFO global)
-              ATTENTION : typo dans le header -> champ ecrit "ticker_counter"
-              au lieu de "ticket_counter" (ligne ~123 de codexion.h) -> a corriger
+    [X] 3.4.9 long long ticket_counter (pour FIFO global)
 
 ================================================================================
 PHASE 4 - IMPLEMENTATION DE LA PRIORITY QUEUE (HEAP)
@@ -146,18 +144,18 @@ PHASE 4 - IMPLEMENTATION DE LA PRIORITY QUEUE (HEAP)
 PHASE 5 - SYSTEME DE LOG SERIALISE
 ================================================================================
 
-[ ] 5.1 Fonction log_event(t_sim *sim, int coder_id, const char *msg)
-    [ ] 5.1.1 Lock log_mutex
-    [ ] 5.1.2 Calculer le timestamp relatif depuis sim->start_ms
-    [ ] 5.1.3 printf("%lld %d %s\n", ts, coder_id, msg)
-    [ ] 5.1.4 Verifier sim->stop avant pour eviter les logs apres burnout
+[X] 5.1 Fonction log_event(t_sim *sim, int coder_id, const char *msg)
+    [X] 5.1.1 Lock log_mutex
+    [X] 5.1.2 Calculer le timestamp relatif depuis sim->start_ms
+    [X] 5.1.3 printf("%lld %d %s\n", ts, coder_id, msg)
+    [X] 5.1.4 Verifier sim->stop avant pour eviter les logs apres burnout
               (sauf le burnout lui-meme)
-    [ ] 5.1.5 Unlock log_mutex
+    [X] 5.1.5 Unlock log_mutex
 
-[ ] 5.2 Wrappers : log_taken_dongle, log_compiling, log_debugging,
-        log_refactoring, log_burned_out
+[X] 5.2 Wrappers : log_taken_dongle, log_compiling, log_debugging,
+        log_refactoring (src/log.c), log_burned_out (src/log_burnout.c)
 
-[ ] 5.3 Verifier que les chaines exactes correspondent au sujet :
+[X] 5.3 Verifier que les chaines exactes correspondent au sujet :
         "has taken a dongle", "is compiling", "is debugging",
         "is refactoring", "burned out"
 
@@ -165,12 +163,12 @@ PHASE 5 - SYSTEME DE LOG SERIALISE
 PHASE 6 - HELPERS DE TEMPS
 ================================================================================
 
-[ ] 6.1 long long now_ms(void) -> retourne ms epoch via gettimeofday
+[X] 6.1 long long now_ms(void) -> retourne ms epoch via gettimeofday
 
-[ ] 6.2 long long elapsed_ms(t_sim *sim) -> now_ms() - sim->start_ms
+[X] 6.2 long long elapsed_ms(t_sim *sim) -> now_ms() - sim->start_ms
 
 [ ] 6.3 void precise_sleep_ms(long long ms, t_sim *sim)
-    [ ] 6.3.1 Boucle d usleep par petits incrementss
+    [ ] 6.3.1 Boucle d usleep par petits increments
               (ex: 100 us) jusqu a atteindre la cible
     [ ] 6.3.2 Verifier sim->stop a chaque iteration pour sortir vite
 

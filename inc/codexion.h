@@ -6,7 +6,7 @@
 /*   By: acombier <acombier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/28 11:08:59 by acombier          #+#    #+#             */
-/*   Updated: 2026/04/28 15:27:31 by acombier         ###   ########.fr       */
+/*   Updated: 2026/04/28 16:03:02 by acombier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -161,6 +161,22 @@ int		pq_less(t_pqnode a, t_pqnode b);
 void	sift_up(t_pqueue *q, size_t i);
 void	sift_down(t_pqueue *q, size_t i);
 int		pq_grow(t_pqueue *q);
+
+
+/* === Phase 6 (helpers temps, debut) === */
+
+long long now_ms(void);
+long long elapsed_ms(t_sim *sim);
+
+/* === Phase 5 (logs serialises) === */
+
+void	log_event(t_sim *sim, int coder_id, const char *msg);
+void	log_taken_dongle(t_sim *sim, int coder_id);
+void	log_compiling(t_sim *sim, int coder_id);
+void	log_debugging(t_sim *sim, int coder_id);
+void	log_refactoring(t_sim *sim, int coder_id);
+void	log_burned_out(t_sim *sim, int coder_id);
+
 
 
 int		parse_args(int argc, char **argv, t_config *cfg);

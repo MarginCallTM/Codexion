@@ -6,7 +6,7 @@
 /*   By: acombier <acombier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/28 11:08:59 by acombier          #+#    #+#             */
-/*   Updated: 2026/04/28 12:26:31 by acombier         ###   ########.fr       */
+/*   Updated: 2026/04/28 15:27:31 by acombier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,11 +120,48 @@ typedef struct s_sim
 	pthread_mutex_t	log_mutex;
 	pthread_mutex_t	coder_state_mutex;
 
-	long long		ticker_counter;
+	long long		ticket_counter;
 
 	pthread_t		monitor;
 
 }	t_sim;
+
+  /*                                                                                                                                                                                                               
+  ** Noeud du heap.
+  **   coder_id : qui attend dans la file
+  **   key      : cle de tri (ticket FIFO ou deadline EDF, calculee par                                                                                                                                            
+  **              l appelant ; le heap ne sait pas lequel des deux c est)                                                                                                                                          
+  **   tiebreak : departage les keys egales pour rester deterministe                                                                                                                                               
+  **              (on prend coder_id, qui est unique par construction)                                                                                                                                             
+  */ 
+
+typedef struct s_pqnode
+{
+	int		coder_id;
+	long long key;
+	long long tiebreak;			
+}	t_pqnode;
+
+
+struct s_pqueue
+{
+	t_pqnode	*data;
+	size_t		size;
+	size_t		capacity;
+};
+
+t_pqueue	*pq_init(size_t initial_capacity);
+void	pq_destroy(t_pqueue *q);
+int		pq_push(t_pqueue *q, int coder_id, long long key);
+int		pq_peek(const t_pqueue *q, t_pqnode *out);
+int		pq_pop(t_pqueue *q, t_pqnode *out);
+int		pq_remove(t_pqueue *q, int coder_id);
+
+int		pq_less(t_pqnode a, t_pqnode b);
+void	sift_up(t_pqueue *q, size_t i);
+void	sift_down(t_pqueue *q, size_t i);
+int		pq_grow(t_pqueue *q);
+
 
 int		parse_args(int argc, char **argv, t_config *cfg);
 

@@ -33,14 +33,14 @@ PHASE 1 - SETUP DU PROJET
     [X] 1.2.8 .PHONY: all clean fclean re
     [X] 1.2.9 Pas de relink inutile (verifier avec make 2 fois de suite)
 
-[~] 1.3 Creer le header principal codexion.h
+[X] 1.3 Creer le header principal codexion.h
     [X] 1.3.1 Includes systeme : pthread.h, stdio.h, stdlib.h, string.h,
               sys/time.h, unistd.h, errno.h
-    [ ] 1.3.2 Defines / enum pour les etats : COMPILING, DEBUGGING, REFACTORING
+    [X] 1.3.2 Defines / enum pour les etats : STATE_COMPILING,
+              STATE_DEBUGGING, STATE_REFACTORING (typedef enum e_state t_state)
     [X] 1.3.3 Defines / enum pour le scheduler : SCHED_FIFO_, SCHED_EDF
-    [~] 1.3.4 Prototypes des fonctions publiques
-              (seul parse_args declare pour l instant ; a completer
-               au fil des phases suivantes)
+    [X] 1.3.4 Prototypes des fonctions publiques
+              (parse_args + toute l API heap pq_*)
 
 ================================================================================
 PHASE 2 - PARSING ET VALIDATION DES ARGUMENTS
@@ -76,68 +76,71 @@ PHASE 2 - PARSING ET VALIDATION DES ARGUMENTS
 PHASE 3 - STRUCTURES DE DONNEES PRINCIPALES
 ================================================================================
 
-[ ] 3.1 t_config : configuration immuable
-    [ ] 3.1.1 Tous les arguments parses
+[X] 3.1 t_config : configuration immuable
+    [X] 3.1.1 Tous les arguments parses
 
-[ ] 3.2 t_dongle : un dongle = mutex + etat + timestamp de derniere release
-    [ ] 3.2.1 pthread_mutex_t mutex
-    [ ] 3.2.2 int taken (booleen)
-    [ ] 3.2.3 long long released_at_ms (pour le cooldown)
-    [ ] 3.2.4 t_pqueue *waiters (file d attente locale au dongle)
-    [ ] 3.2.5 pthread_cond_t cond (pour reveiller les attendants)
+[X] 3.2 t_dongle : un dongle = mutex + etat + timestamp de derniere release
+    [X] 3.2.1 pthread_mutex_t mutex
+    [X] 3.2.2 int taken (booleen)
+    [X] 3.2.3 long long released_at_ms (pour le cooldown)
+    [X] 3.2.4 t_pqueue *waiters (file d attente locale au dongle)
+    [X] 3.2.5 pthread_cond_t cond (pour reveiller les attendants)
 
-[ ] 3.3 t_coder : etat d un coder
-    [ ] 3.3.1 int id
-    [ ] 3.3.2 pthread_t thread
-    [ ] 3.3.3 int state (compile/debug/refactor)
-    [ ] 3.3.4 long long last_compile_start_ms
-    [ ] 3.3.5 int compiles_done
-    [ ] 3.3.6 t_dongle *left, *right
-    [ ] 3.3.7 t_sim *sim (back-pointer)
+[X] 3.3 t_coder : etat d un coder
+    [X] 3.3.1 int id
+    [X] 3.3.2 pthread_t thread
+    [X] 3.3.3 t_state state (enum STATE_COMPILING/DEBUGGING/REFACTORING)
+    [X] 3.3.4 long long last_compile_start_ms
+    [X] 3.3.5 int compiles_done
+    [X] 3.3.6 t_dongle *left, *right
+    [X] 3.3.7 t_sim *sim (back-pointer)
 
-[ ] 3.4 t_sim : etat global de la simulation (passe en parametre, pas global)
-    [ ] 3.4.1 t_config config
-    [ ] 3.4.2 t_coder *coders
-    [ ] 3.4.3 t_dongle *dongles
-    [ ] 3.4.4 long long start_ms (debut de la simulation)
-    [ ] 3.4.5 int stop (booleen, lu/ecrit sous mutex)
-    [ ] 3.4.6 pthread_mutex_t stop_mutex
-    [ ] 3.4.7 pthread_mutex_t log_mutex (serialisation des prints)
-    [ ] 3.4.8 pthread_mutex_t coder_state_mutex (protege last_compile_start
+[~] 3.4 t_sim : etat global de la simulation (passe en parametre, pas global)
+    [X] 3.4.1 t_config config
+    [X] 3.4.2 t_coder *coders
+    [X] 3.4.3 t_dongle *dongles
+    [X] 3.4.4 long long start_ms (debut de la simulation)
+    [X] 3.4.5 int stop (booleen, lu/ecrit sous mutex)
+    [X] 3.4.6 pthread_mutex_t stop_mutex
+    [X] 3.4.7 pthread_mutex_t log_mutex (serialisation des prints)
+    [X] 3.4.8 pthread_mutex_t coder_state_mutex (protege last_compile_start
               et compiles_done)
-    [ ] 3.4.9 long long ticket_counter (pour FIFO global)
+    [!] 3.4.9 long long ticket_counter (pour FIFO global)
+              ATTENTION : typo dans le header -> champ ecrit "ticker_counter"
+              au lieu de "ticket_counter" (ligne ~123 de codexion.h) -> a corriger
 
 ================================================================================
 PHASE 4 - IMPLEMENTATION DE LA PRIORITY QUEUE (HEAP)
 ================================================================================
 
-[ ] 4.1 Definir t_pqueue
-    [ ] 4.1.1 t_pqnode *data (tableau dynamique)
-    [ ] 4.1.2 size_t size, capacity
-    [ ] 4.1.3 (fonction de comparaison passee en parametre OU
-              champ scheduler dans la queue pour choisir la cle)
+[X] 4.1 Definir t_pqueue (struct s_pqueue dans codexion.h)
+    [X] 4.1.1 t_pqnode *data (tableau dynamique)
+    [X] 4.1.2 size_t size, capacity
+    [-] 4.1.3 Pas de champ scheduler : l appelant calcule la bonne key
+              (ticket FIFO ou deadline EDF) avant pq_push -> heap agnostique
 
-[ ] 4.2 Definir t_pqnode
-    [ ] 4.2.1 int coder_id
-    [ ] 4.2.2 long long key (ticket FIFO ou deadline EDF)
-    [ ] 4.2.3 long long tiebreak (coder_id pour determinisme)
+[X] 4.2 Definir t_pqnode (typedef struct s_pqnode dans codexion.h)
+    [X] 4.2.1 int coder_id
+    [X] 4.2.2 long long key (ticket FIFO ou deadline EDF)
+    [X] 4.2.3 long long tiebreak (= coder_id pour determinisme)
 
-[ ] 4.3 Implementer pq_init / pq_destroy
+[X] 4.3 Implementer pq_init / pq_destroy (src/pqueue.c)
 
-[ ] 4.4 Implementer pq_push (avec resize si plein)
-    [ ] 4.4.1 Ajouter en fin de tableau
-    [ ] 4.4.2 sift_up
+[X] 4.4 Implementer pq_push (avec resize via pq_grow si plein)
+    [X] 4.4.1 Ajouter en fin de tableau
+    [X] 4.4.2 sift_up
 
-[ ] 4.5 Implementer pq_peek (regarde sans retirer)
+[X] 4.5 Implementer pq_peek (regarde sans retirer)
 
-[ ] 4.6 Implementer pq_pop
-    [ ] 4.6.1 Recuperer le sommet
-    [ ] 4.6.2 Mettre le dernier element en sommet
-    [ ] 4.6.3 sift_down
+[X] 4.6 Implementer pq_pop
+    [X] 4.6.1 Recuperer le sommet
+    [X] 4.6.2 Mettre le dernier element en sommet
+    [X] 4.6.3 sift_down
 
-[ ] 4.7 Implementer pq_remove(coder_id) (utile pour annulation)
+[X] 4.7 Implementer pq_remove(coder_id) (src/pqueue_utils.c)
 
-[ ] 4.8 Tester la priority queue isolement avec un main de test
+[-] 4.8 Tester la priority queue isolement avec un main de test
+        (reporte : on testera naturellement lors de l integration Phase 7)
 
 ================================================================================
 PHASE 5 - SYSTEME DE LOG SERIALISE

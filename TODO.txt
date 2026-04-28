@@ -1,3 +1,4 @@
+
 ================================================================================
                       CODEXION - ROADMAP DE REALISATION
 ================================================================================
@@ -32,40 +33,44 @@ PHASE 1 - SETUP DU PROJET
     [X] 1.2.8 .PHONY: all clean fclean re
     [X] 1.2.9 Pas de relink inutile (verifier avec make 2 fois de suite)
 
-[ ] 1.3 Creer le header principal codexion.h
+[~] 1.3 Creer le header principal codexion.h
     [X] 1.3.1 Includes systeme : pthread.h, stdio.h, stdlib.h, string.h,
               sys/time.h, unistd.h, errno.h
     [ ] 1.3.2 Defines / enum pour les etats : COMPILING, DEBUGGING, REFACTORING
-    [ ] 1.3.3 Defines / enum pour le scheduler : SCHED_FIFO_, SCHED_EDF
-    [ ] 1.3.4 Prototypes des fonctions publiques
+    [X] 1.3.3 Defines / enum pour le scheduler : SCHED_FIFO_, SCHED_EDF
+    [~] 1.3.4 Prototypes des fonctions publiques
+              (seul parse_args declare pour l instant ; a completer
+               au fil des phases suivantes)
 
 ================================================================================
 PHASE 2 - PARSING ET VALIDATION DES ARGUMENTS
 ================================================================================
 
-[ ] 2.1 Verifier le nombre d arguments (8 obligatoires + argv[0])
+[X] 2.1 Verifier le nombre d arguments (8 obligatoires + argv[0])
 
-[ ] 2.2 Implementer un atoi safe
-    [ ] 2.2.1 Refuser les chaines vides
-    [ ] 2.2.2 Refuser les caracteres non numeriques
-    [ ] 2.2.3 Refuser les overflows (verifier avant multiplication)
-    [ ] 2.2.4 Refuser les nombres negatifs (sauf si la regle l autorise)
+[X] 2.2 Implementer un atoi safe
+    [X] 2.2.1 Refuser les chaines vides
+    [X] 2.2.2 Refuser les caracteres non numeriques
+    [X] 2.2.3 Refuser les overflows (verifier avant multiplication ;
+              borne fixee a INT_MAX = 2147483647LL)
+    [X] 2.2.4 Refuser les nombres negatifs
+              (pas de '-' lu : tout caractere non numerique est rejete)
 
-[ ] 2.3 Parser les 7 entiers :
+[X] 2.3 Parser les 7 entiers :
         number_of_coders, time_to_burnout, time_to_compile, time_to_debug,
         time_to_refactor, number_of_compiles_required, dongle_cooldown
 
-[ ] 2.4 Parser le 8e argument scheduler
-    [ ] 2.4.1 Comparer avec strcmp a "fifo" ou "edf"
-    [ ] 2.4.2 Stocker dans un enum
+[X] 2.4 Parser le 8e argument scheduler
+    [X] 2.4.1 Comparer avec strcmp a "fifo" ou "edf"
+    [X] 2.4.2 Stocker dans un enum
 
-[ ] 2.5 Cas limites a gerer
-    [ ] 2.5.1 number_of_coders == 0 -> rejeter
-    [ ] 2.5.2 number_of_coders == 1 -> 1 seul dongle, impossible de compiler
-              (a clarifier : doit-on quand meme tourner ? brulera forcement)
-    [ ] 2.5.3 number_of_compiles_required == 0 -> arret immediat ?
+[~] 2.5 Cas limites a gerer
+    [X] 2.5.1 number_of_coders == 0 -> rejeter (validate_config)
+    [-] 2.5.2 number_of_coders == 1 -> decision : on laisse tourner,
+              il finira par burnout (comportement attendu, voir Annexe)
+    [X] 2.5.3 number_of_compiles_required == 0 -> rejete (validate_config)
 
-[ ] 2.6 Stocker dans une struct t_config (pas de variables globales)
+[X] 2.6 Stocker dans une struct t_config (pas de variables globales)
 
 ================================================================================
 PHASE 3 - STRUCTURES DE DONNEES PRINCIPALES

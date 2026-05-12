@@ -203,13 +203,14 @@ PHASE 7 - GESTION DES DONGLES
     [X] 7.3.4 pthread_cond_broadcast(&d->cond)
     [X] 7.3.5 Unlock d->mutex
 
-[ ] 7.4 Decision sur la prevention de deadlock
-    [ ] 7.4.1 Choisir une strategie definitive :
+[~] 7.4 Decision sur la prevention de deadlock
+    [X] 7.4.1 Choisir une strategie definitive :
               option A : ordre par adresse (toujours lock le mutex
                          d adresse plus basse en premier)
               option B : asymetrie (pair = gauche d abord, impair = droite)
               option C : prise atomique via un mutex global de
                          "table" pendant l acquisition
+              -> Option B choisie, implementee dans src/coder.c
     [ ] 7.4.2 Documenter le choix dans le README
 
 [X] 7.5 Gestion du cooldown
@@ -222,11 +223,11 @@ PHASE 7 - GESTION DES DONGLES
 PHASE 8 - LOGIQUE DU THREAD CODER
 ================================================================================
 
-[ ] 8.1 void *coder_routine(void *arg)
-    [ ] 8.1.1 Recuperer le t_coder
-    [ ] 8.1.2 Initialiser last_compile_start_ms = sim->start_ms
+[X] 8.1 void *coder_routine(void *arg)
+    [X] 8.1.1 Recuperer le t_coder
+    [X] 8.1.2 Initialiser last_compile_start_ms = sim->start_ms
               (regle du sujet : depuis le debut de la simulation)
-    [ ] 8.1.3 Boucle tant que !sim->stop &&
+    [X] 8.1.3 Boucle tant que !sim->stop &&
               compiles_done < number_of_compiles_required :
               (a) acquerir gauche
               (b) acquerir droite  (selon strategie anti-deadlock)
@@ -239,7 +240,7 @@ PHASE 8 - LOGIQUE DU THREAD CODER
               (h) log "is debugging" + sleep time_to_debug
               (i) log "is refactoring" + sleep time_to_refactor
               (j) recommencer
-    [ ] 8.1.4 Sortir proprement si sim->stop devient vrai
+    [X] 8.1.4 Sortir proprement si sim->stop devient vrai
 
 ================================================================================
 PHASE 9 - THREAD MONITOR (DETECTION DU BURNOUT)

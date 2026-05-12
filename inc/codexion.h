@@ -6,7 +6,7 @@
 /*   By: acombier <acombier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/28 11:08:59 by acombier          #+#    #+#             */
-/*   Updated: 2026/04/29 12:50:39 by acombier         ###   ########.fr       */
+/*   Updated: 2026/05/12 12:23:53 by acombier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -190,6 +190,23 @@ void	dongle_release(t_dongle *d);
 long long	dongle_compute_key(t_coder *coder, t_sim *sim);
 int		dongle_can_take(t_dongle *d, int coder_id, long long cooldown);
 void	dongle_wait_loop(t_dongle *d, t_coder *coder, t_sim *sim);
+
+/* === Phase 8 (coder threads) === */
+
+void	*coder_routine(void *arg);
+void	coder_take_dongles(t_coder *coder);
+
+void	coder_release_dongles(t_coder *coder);
+void	coder_do_cycle(t_coder *coder);
+int		coder_should_continue(t_coder *coder);
+
+/* === Phase 9 (monitor thread) === */
+
+void	*monitor_routine(void *arg);
+int		monitor_check_burnout(t_sim *sim);
+int		monitor_check_end(t_sim *sim);
+void	monitor_trigger_burnout(t_sim *sim, int coder_id);
+void	monitor_signal_all_dongles(t_sim *sim);
 
 int		parse_args(int argc, char **argv, t_config *cfg);
 

@@ -6,7 +6,7 @@
 /*   By: acombier <acombier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/12 12:24:06 by acombier          #+#    #+#             */
-/*   Updated: 2026/05/12 14:53:51 by acombier         ###   ########.fr       */
+/*   Updated: 2026/05/12 16:48:06 by acombier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,29 +36,34 @@ void	monitor_signal_all_dongles(t_sim *sim)
 	}
 }
 
- /*
+/*
     ** monitor_check_burnout
     ** Parcourt les coders : si (now - last_compile_start_ms) > time_to_burnout,
     ** retourne l id de ce coder ; sinon -1.
-    ** Lecture de last_compile_start_ms SOUS coder_state_mutex (torn read 64
-    ** bits possible sinon selon l archi). now_ms() en dehors du lock : c est
-    ** un syscall, inutile de tenir le mutex pendant.
-    */
+    ** Lecture de last_compile_start_ms et compiles_done SOUS coder_state_mutex
+    ** (torn read 64 bits possible sinon selon l archi). now_ms() en dehors du
+    ** lock : c est un syscall, inutile de tenir le mutex pendant.
+    ** Coders deja finis (compiles_done >= required) sont ignores : leur
+    ** thread est sorti, last_compile_start_ms est fige, le monitor ne doit
+    ** pas declencher un burnout artificiel pendant que les autres terminent.
+*/
 
 int		monitor_check_burnout(t_sim *sim)
 {
 	int		i;
 	long long		last;
 	long long		since;
+	int		done;
 
 	i = 0;
 	while(i < sim->config.number_of_coders)
 	{
 		pthread_mutex_lock(&sim->coder_state_mutex);
 		last = sim->coders[i].last_compile_start_ms;
+		done = sim->coders[i].compiles_done;
 		pthread_mutex_unlock(&sim->coder_state_mutex);
 		since = now_ms() - last;
-		if(since > sim->config.time_to_burnout)
+		if(done < sim->config.number_of_compiles_required && since > sim->config.time_to_burnout)
 			return (sim->coders[i].id);
 		i++;
 	}

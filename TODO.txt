@@ -167,41 +167,41 @@ PHASE 6 - HELPERS DE TEMPS
 
 [X] 6.2 long long elapsed_ms(t_sim *sim) -> now_ms() - sim->start_ms
 
-[ ] 6.3 void precise_sleep_ms(long long ms, t_sim *sim)
-    [ ] 6.3.1 Boucle d usleep par petits increments
+[X] 6.3 void precise_sleep_ms(long long ms, t_sim *sim)
+    [X] 6.3.1 Boucle d usleep par petits increments
               (ex: 100 us) jusqu a atteindre la cible
-    [ ] 6.3.2 Verifier sim->stop a chaque iteration pour sortir vite
+    [X] 6.3.2 Verifier sim->stop a chaque iteration pour sortir vite
 
-[ ] 6.4 Helper pour construire une struct timespec absolue a partir de
+[X] 6.4 Helper pour construire une struct timespec absolue a partir de
         maintenant + delta_ms (utile pour pthread_cond_timedwait)
 
 ================================================================================
 PHASE 7 - GESTION DES DONGLES
 ================================================================================
 
-[ ] 7.1 dongle_init / dongle_destroy
+[X] 7.1 dongle_init / dongle_destroy
 
-[ ] 7.2 dongle_request(t_coder *coder, t_dongle *d)
-    [ ] 7.2.1 Lock d->mutex
-    [ ] 7.2.2 Calculer la cle de priorite selon le scheduler :
+[X] 7.2 dongle_request(t_coder *coder, t_dongle *d)
+    [X] 7.2.1 Lock d->mutex
+    [X] 7.2.2 Calculer la cle de priorite selon le scheduler :
               - FIFO : ticket = sim->ticket_counter++ sous lock
               - EDF  : deadline = last_compile_start + time_to_burnout
-    [ ] 7.2.3 pq_push(d->waiters, coder->id, key)
-    [ ] 7.2.4 Boucle while (!can_take(d, coder)) :
-                pthread_cond_wait(&d->cond, &d->mutex)
+    [X] 7.2.3 pq_push(d->waiters, coder->id, key)
+    [X] 7.2.4 Boucle while (!can_take(d, coder)) :
+                pthread_cond_timedwait(&d->cond, &d->mutex, &ts)
               can_take = !d->taken && cooldown_elapsed
                          && pq_peek(d->waiters) == coder->id
-    [ ] 7.2.5 pq_remove(d->waiters, coder->id)
-    [ ] 7.2.6 d->taken = 1
-    [ ] 7.2.7 log_taken_dongle
-    [ ] 7.2.8 Unlock d->mutex
+    [X] 7.2.5 pq_remove(d->waiters, coder->id)
+    [X] 7.2.6 d->taken = 1
+    [X] 7.2.7 log_taken_dongle
+    [X] 7.2.8 Unlock d->mutex
 
-[ ] 7.3 dongle_release(t_dongle *d)
-    [ ] 7.3.1 Lock d->mutex
-    [ ] 7.3.2 d->taken = 0
-    [ ] 7.3.3 d->released_at_ms = now_ms()
-    [ ] 7.3.4 pthread_cond_broadcast(&d->cond)
-    [ ] 7.3.5 Unlock d->mutex
+[X] 7.3 dongle_release(t_dongle *d)
+    [X] 7.3.1 Lock d->mutex
+    [X] 7.3.2 d->taken = 0
+    [X] 7.3.3 d->released_at_ms = now_ms()
+    [X] 7.3.4 pthread_cond_broadcast(&d->cond)
+    [X] 7.3.5 Unlock d->mutex
 
 [ ] 7.4 Decision sur la prevention de deadlock
     [ ] 7.4.1 Choisir une strategie definitive :
@@ -212,10 +212,10 @@ PHASE 7 - GESTION DES DONGLES
                          "table" pendant l acquisition
     [ ] 7.4.2 Documenter le choix dans le README
 
-[ ] 7.5 Gestion du cooldown
-    [ ] 7.5.1 Quand un dongle vient d etre release,
+[X] 7.5 Gestion du cooldown
+    [X] 7.5.1 Quand un dongle vient d etre release,
               now - released_at < cooldown -> ne pas l accorder
-    [ ] 7.5.2 Utiliser pthread_cond_timedwait pour ne pas attendre
+    [X] 7.5.2 Utiliser pthread_cond_timedwait pour ne pas attendre
               passivement plus que necessaire
 
 ================================================================================

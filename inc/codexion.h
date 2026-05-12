@@ -6,7 +6,7 @@
 /*   By: acombier <acombier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/28 11:08:59 by acombier          #+#    #+#             */
-/*   Updated: 2026/04/28 16:03:02 by acombier         ###   ########.fr       */
+/*   Updated: 2026/04/29 12:50:39 by acombier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -162,12 +162,6 @@ void	sift_up(t_pqueue *q, size_t i);
 void	sift_down(t_pqueue *q, size_t i);
 int		pq_grow(t_pqueue *q);
 
-
-/* === Phase 6 (helpers temps, debut) === */
-
-long long now_ms(void);
-long long elapsed_ms(t_sim *sim);
-
 /* === Phase 5 (logs serialises) === */
 
 void	log_event(t_sim *sim, int coder_id, const char *msg);
@@ -177,7 +171,25 @@ void	log_debugging(t_sim *sim, int coder_id);
 void	log_refactoring(t_sim *sim, int coder_id);
 void	log_burned_out(t_sim *sim, int coder_id);
 
+/* === Phase 6 (helpers temps, debut) === */
 
+long long now_ms(void);
+long long elapsed_ms(t_sim *sim);
+void	precise_sleep_ms(long long ms, t_sim *sim);
+void	ms_to_timespec(long long delta_ms, struct timespec *ts);
+
+/* === Phase 7 (dongles) === */                                                                                                                                                                                  
+/* dongle_init / destroy / request / release : publiques */
+int		dongle_init(t_dongle *d, int id);
+void	dongle_destroy(t_dongle *d);
+void	dongle_request(t_coder *coder, t_dongle *d);
+void	dongle_release(t_dongle *d);
+
+
+/* helpers internes (dans dongle_utils.c, non-static car fichier separe) */
+long long	dongle_compute_key(t_coder *coder, t_sim *sim);
+int		dongle_can_take(t_dongle *d, int coder_id, long long cooldown);
+void	dongle_wait_loop(t_dongle *d, t_coder *coder, t_sim *sim);
 
 int		parse_args(int argc, char **argv, t_config *cfg);
 

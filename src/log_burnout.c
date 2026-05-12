@@ -6,7 +6,7 @@
 /*   By: acombier <acombier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/28 16:21:52 by acombier          #+#    #+#             */
-/*   Updated: 2026/04/28 17:04:23 by acombier         ###   ########.fr       */
+/*   Updated: 2026/04/29 11:59:58 by acombier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,11 +41,11 @@ void	log_burned_out(t_sim *sim, int coder_id)
 	{
 		pthread_mutex_unlock(&sim->stop_mutex);
 		pthread_mutex_unlock(&sim->log_mutex);
-		return;
+		return ;
 	}
 	sim->stop = 1;
 	pthread_mutex_unlock(&sim->stop_mutex);
 	ts = elapsed_ms(sim);
-	printf("%lld %d %s", ts, coder_id, "burned out\n");
+	printf("%lld %d %s\n", ts, coder_id, "burned out");
 	pthread_mutex_unlock(&sim->log_mutex);
 }

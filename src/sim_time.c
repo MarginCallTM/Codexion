@@ -6,7 +6,7 @@
 /*   By: acombier <acombier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/28 16:03:43 by acombier          #+#    #+#             */
-/*   Updated: 2026/04/29 12:49:30 by acombier         ###   ########.fr       */
+/*   Updated: 2026/05/12 16:34:54 by acombier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,26 +38,36 @@ long long	elapsed_ms(t_sim *sim)
 	return (now_ms() - sim->start_ms);
 }
 
-  /*              
-  ** Dors pendant exactement `ms` millisecondes, mais verifie sim->stop                                                                                                                                            
-  ** tous les 100 µs pour sortir vite si la simulation s arrete.                                                                                                                                                   
-  **                                                                                                                                                                                                               
-  ** Pourquoi une boucle et pas un simple usleep(ms * 1000) ?                                                                                                                                                      
-  ** usleep n est pas precis : le kernel peut nous reveiller en retard.                                                                                                                                            
-  ** En boucle avec la vraie horloge on ne dort jamais PLUS que prevu.                                                                                                                                             
-  **                                                                                                                                                                                                               
-  ** Race benigne sur sim->stop : on lit sans lock car aucun autre mutex                                                                                                                                           
-  ** n est tenu pendant ce sleep, et le cout d un faux negatif est juste                                                                                                                                           
-  ** 100 µs de plus de sommeil.                                                                                                                                                                                    
+  /*
+    ** Dors pendant exactement `ms` millisecondes, mais verifie sim->stop
+    ** tous les 100 us pour sortir vite si la simulation s arrete.
+    **
+    ** Pourquoi une boucle et pas un simple usleep(ms * 1000) ?
+    ** usleep n est pas precis : le kernel peut nous reveiller en retard.
+    ** En boucle avec la vraie horloge on ne dort jamais PLUS que prevu.
+    **
+    ** Lecture de sim->stop SOUS stop_mutex : on ne tient aucun autre lock
+    ** ici (precise_sleep_ms est appelee depuis coder_do_cycle entre les
+    ** prises de dongles), donc l ordre log->stop->coder_state->dongle est
+    ** respecte. Sans ce lock, helgrind detectait un data race contre
+    ** l ecriture par monitor_routine.
   */
+
 
 void	precise_sleep_ms(long long ms, t_sim *sim)
 {
 	long long	target;
+  int   stop;
 
 	target = now_ms() + ms;
-	while (!sim->stop && now_ms() < target)
-		usleep(100);
+  stop = 0;
+	while (!stop && now_ms() < target)
+  {
+    usleep(100);
+    pthread_mutex_lock(&sim->stop_mutex);
+    stop = sim->stop;
+    pthread_mutex_unlock(&sim->stop_mutex);
+  }
 }
 
 /*                                                                                                                                                                                                               

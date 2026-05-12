@@ -246,8 +246,8 @@ PHASE 8 - LOGIQUE DU THREAD CODER
 PHASE 9 - THREAD MONITOR (DETECTION DU BURNOUT)
 ================================================================================
 
-[ ] 9.1 void *monitor_routine(void *arg)
-    [ ] 9.1.1 Boucle while (!sim->stop) :
+[X] 9.1 void *monitor_routine(void *arg)
+    [X] 9.1.1 Boucle while (!sim->stop) :
               (a) Pour chaque coder :
                   - lock coder_state_mutex
                   - calculer since_last_compile = now - last_compile_start
@@ -261,32 +261,46 @@ PHASE 9 - THREAD MONITOR (DETECTION DU BURNOUT)
                       return
               (b) Verifier la condition de fin :
                   si tous compiles_done >= required -> sim->stop = 1
-              (c) usleep(1000) (ou moins, < 10 ms pour respecter la
-                  precision)
+              (c) usleep(500) -> precision < 1 ms, bien sous les 10 ms exiges
 
-[ ] 9.2 Le monitor doit reveiller les coders bloques en cond_wait
+[X] 9.2 Le monitor doit reveiller les coders bloques en cond_wait
         quand stop devient vrai (broadcast sur tous les dongles)
 
 ================================================================================
 PHASE 10 - MAIN, INITIALISATION ET CLEANUP
 ================================================================================
 
-[ ] 10.1 main(argc, argv)
-     [ ] 10.1.1 parse_args -> t_config
-     [ ] 10.1.2 sim_init -> alloue coders, dongles, mutexes, conds
-     [ ] 10.1.3 sim->start_ms = now_ms()
-     [ ] 10.1.4 lancer le thread monitor en premier
-     [ ] 10.1.5 lancer un thread par coder (avec un petit usleep entre
-                pour eviter qu ils prennent tous le ticket 0 en meme temps,
-                ou bien rendre l ordre deterministe)
-     [ ] 10.1.6 pthread_join sur tous les coders
-     [ ] 10.1.7 pthread_join sur le monitor
-     [ ] 10.1.8 sim_destroy -> destroy mutexes, conds, free memoire
+[X] 10.1 main(argc, argv)
+     [X] 10.1.1 parse_args -> t_config
+     [X] 10.1.2 sim_init -> alloue coders, dongles, mutexes, conds
+                (split en sim_init_mutexes / _dongles / _coders pour la norm)
+     [X] 10.1.3 sim->start_ms = now_ms()
+                (+ init last_compile_start_ms = start_ms sur tous les coders
+                AVANT lancement monitor pour eviter faux burnout)
+     [X] 10.1.4 lancer le thread monitor en premier (sim_launch)
+     [X] 10.1.5 lancer un thread par coder avec usleep(100) entre chaque
+     [X] 10.1.6 pthread_join sur tous les coders (sim_join)
+     [X] 10.1.7 pthread_join sur le monitor (sim_join)
+     [X] 10.1.8 sim_destroy -> destroy mutexes, conds, free memoire
+                (idempotent, NULL checks, gere echecs partiels d init)
 
-[ ] 10.2 Verifier zero memory leak avec valgrind --leak-check=full
+     Premier test passe (2026-05-12) :
+       ./codexion 5 800 200 200 200 5 0 fifo
+       -> 25 compiles, 3.002s wall, exit 0, pas de burnout, logs sequentiels
 
-[ ] 10.3 Verifier zero data race avec valgrind --tool=helgrind
-         (les warnings sur cond_broadcast sont parfois normaux)
+[X] 10.2 Verifier zero memory leak avec valgrind --leak-check=full
+         -> 2026-05-12 : 19 allocs / 19 frees, 0 byte in use, 0 erreur
+         commande : valgrind --leak-check=full --show-leak-kinds=all
+                    --track-origins=yes ./codexion 5 800 200 200 200 5 0 fifo
+
+[X] 10.3 Verifier zero data race avec valgrind --tool=helgrind
+         -> 2026-05-12 : 0 data race (apres fix de precise_sleep_ms qui lisait
+            sim->stop sans lock, cf. sim_time.c lignes 41-52)
+         -> 2 warnings "pthread_cond_broadcast: dubious / associated lock not
+            held" subsistent : faux positifs helgrind documentes (cond_timedwait
+            qui expire pile au moment du broadcast). Tous nos broadcasts sont
+            correctement sous mutex (dongle_release, monitor_signal_all_dongles).
+         commande : valgrind --tool=helgrind ./codexion 5 800 200 200 200 5 0 fifo
 
 ================================================================================
 PHASE 11 - TESTS

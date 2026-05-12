@@ -6,7 +6,7 @@
 /*   By: acombier <acombier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/28 11:08:59 by acombier          #+#    #+#             */
-/*   Updated: 2026/05/12 12:23:53 by acombier         ###   ########.fr       */
+/*   Updated: 2026/05/12 16:24:41 by acombier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -207,6 +207,19 @@ int		monitor_check_burnout(t_sim *sim);
 int		monitor_check_end(t_sim *sim);
 void	monitor_trigger_burnout(t_sim *sim, int coder_id);
 void	monitor_signal_all_dongles(t_sim *sim);
+
+/* === Phase 10 (sim lifecycle + main) === */
+
+int		sim_init(t_sim *sim, const t_config *cfg);
+void	sim_destroy(t_sim *sim);
+
+int		sim_init_mutexes(t_sim *sim);
+int		sim_init_dongles(t_sim *sim);
+int		sim_init_coders(t_sim *sim);
+
+int		sim_launch(t_sim *sim);
+void	sim_join(t_sim *sim);
+void	sim_emergency_stop(t_sim *sim, int created);
 
 int		parse_args(int argc, char **argv, t_config *cfg);
 

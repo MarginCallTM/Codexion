@@ -113,18 +113,11 @@ int		dongle_can_take(t_dongle *d, int coder_id, long long cooldown)
 
 void	dongle_wait_loop(t_dongle *d, t_coder *coder, t_sim *sim)
 {
-	struct timespec ts;
-	long long	remaining;
-
 	while (!d->stop_requested
 		&& !dongle_can_take(d, coder->id, sim->config.dongle_cooldown))
 	{
-		remaining = d->released_at_ms
-			+ sim->config.dongle_cooldown - now_ms();
-		if (!d->taken && d->released_at_ms > 0 && remaining > 0)
-			ms_to_timespec(remaining, &ts);
-		else
-			ms_to_timespec(2, &ts);
-		pthread_cond_timedwait(&d->cond, &d->mutex, &ts);
+		pthread_mutex_unlock(&d->mutex);
+		usleep(200);
+		pthread_mutex_lock(&d->mutex);
 	}
 }

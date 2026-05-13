@@ -411,3 +411,7 @@ ANNEXE - PIEGES CLASSIQUES A NE PAS OUBLIER
 * Pour 1 seul coder : il y a 1 seul dongle sur la table (pas 2),
   donc le coder ne peut jamais compiler -> il finira par burnout.
   C est le comportement attendu, ne pas le forcer a un cas special.
+
+Changer l ID du codeur 0 par codeur 1, commencer a compter a partir de 1
+Check les mutex pour stop les helgrind error leak 
+

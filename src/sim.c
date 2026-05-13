@@ -6,7 +6,7 @@
 /*   By: acombier <acombier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/12 15:07:39 by acombier          #+#    #+#             */
-/*   Updated: 2026/05/12 15:47:36 by acombier         ###   ########.fr       */
+/*   Updated: 2026/05/13 15:58:46 by acombier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,7 +91,7 @@ int		sim_init_coders(t_sim *sim)
 	i = 0;
 	while(i < n)
 	{
-		sim->coders[i].id = i;
+		sim->coders[i].id = i + 1;
 		sim->coders[i].state = STATE_REFACTORING;
 		sim->coders[i].compiles_done = 0;
 		sim->coders[i].last_compile_start_ms = 0;

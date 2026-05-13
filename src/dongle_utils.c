@@ -6,7 +6,7 @@
 /*   By: acombier <acombier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/29 12:10:37 by acombier          #+#    #+#             */
-/*   Updated: 2026/04/29 12:26:12 by acombier         ###   ########.fr       */
+/*   Updated: 2026/05/13 16:17:35 by acombier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,7 +116,7 @@ void	dongle_wait_loop(t_dongle *d, t_coder *coder, t_sim *sim)
 	struct timespec ts;
 	long long	remaining;
 
-	while (!sim->stop
+	while (!d->stop_requested
 		&& !dongle_can_take(d, coder->id, sim->config.dongle_cooldown))
 	{
 		remaining = d->released_at_ms

@@ -6,7 +6,7 @@
 /*   By: acombier <acombier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/12 12:24:06 by acombier          #+#    #+#             */
-/*   Updated: 2026/05/12 16:48:06 by acombier         ###   ########.fr       */
+/*   Updated: 2026/05/13 16:16:55 by acombier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@ void	monitor_signal_all_dongles(t_sim *sim)
 	while(i < sim->config.number_of_coders)
 	{
 		pthread_mutex_lock(&sim->dongles[i].mutex);
+		sim->dongles[i].stop_requested = 1;
 		pthread_cond_broadcast(&sim->dongles[i].cond);
 		pthread_mutex_unlock(&sim->dongles[i].mutex);
 		i++;

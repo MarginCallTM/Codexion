@@ -6,7 +6,7 @@
 /*   By: acombier <acombier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/29 12:26:28 by acombier          #+#    #+#             */
-/*   Updated: 2026/04/29 12:50:05 by acombier         ###   ########.fr       */
+/*   Updated: 2026/05/13 16:16:12 by acombier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@ int		dongle_init(t_dongle *d, int id)
 	d->id = id;
 	d->taken = 0;
 	d->released_at_ms = 0;
+  d->stop_requested = 0;
 	d->waiters = pq_init(4);
 	if (!d->waiters)
 		return (1);

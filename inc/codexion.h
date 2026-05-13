@@ -6,7 +6,7 @@
 /*   By: acombier <acombier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/28 11:08:59 by acombier          #+#    #+#             */
-/*   Updated: 2026/05/12 16:24:41 by acombier         ###   ########.fr       */
+/*   Updated: 2026/05/13 16:15:39 by acombier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,6 +85,7 @@ typedef struct s_dongle
 	pthread_mutex_t mutex;
 	
 	int		taken;
+	int		stop_requested;
 	long long	released_at_ms;
 	
 	t_pqueue	*waiters;

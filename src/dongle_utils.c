@@ -12,22 +12,26 @@
 
 #include "codexion.h"
 
-  /*              
+  /*
   ** Calcule la cle de priorite pour la heap selon le scheduler :
-  **                                                                                                                                                                                                               
-  ** FIFO : ticket = compteur global incrementiel.                                                                                                                                                                 
-  **   -> lock stop_mutex pour incrementer atomiquement ticket_counter                                                                                                                                             
-  **   -> le coder qui arrive en premier a la plus petite cle (heap min)                                                                                                                                           
-  **                                                                                                                                                                                                               
-  ** EDF (Earliest Deadline First) :                                                                                                                                                                               
-  **   -> deadline = debut du dernier compile + temps_max_sans_compiler                                                                                                                                            
-  **   -> le coder dont le burnout est le plus PROCHE passe en premier                                                                                                                                             
-  **   -> lock coder_state_mutex pour lire last_compile_start_ms de facon sure                                                                                                                                     
-  **                                                                                                                                                                                                               
-  ** IMPORTANT : la cle est calculee AVANT de locker d->mutex.                                                                                                                                                     
-  ** Pourquoi ? Parce qu on doit prendre stop_mutex ou coder_state_mutex                                                                                                                                           
-  ** pour calculer la cle. Ces deux mutexes sont AVANT dongle.mutex dans                                                                                                                                           
-  ** l ordre de lock. On ne peut pas les prendre APRES.                                                                                                                                                            
+  **
+  ** FIFO : (compiles_done * N) + coder_id
+  **   -> primaire : nombre de compiles deja faits (moins = priorite haute)
+  **   -> secondaire : coder_id (deterministe, evite la dependance au
+  **      scheduler kernel sur l ordre des pthread_create)
+  **   -> garantit anti-starvation : un coder qui n a JAMAIS compile
+  **      bat toujours un coder qui en a fait au moins un, peu importe
+  **      l ordre des pushes.
+  **   -> lock coder_state_mutex pour lire compiles_done de facon sure.
+  **
+  ** EDF (Earliest Deadline First) :
+  **   -> deadline = debut du dernier compile + temps_max_sans_compiler
+  **   -> le coder dont le burnout est le plus PROCHE passe en premier
+  **
+  ** IMPORTANT : la cle est calculee AVANT de locker d->mutex.
+  ** Pourquoi ? Parce qu on doit prendre coder_state_mutex pour calculer
+  ** la cle, qui est AVANT dongle.mutex dans l ordre de lock.
+  ** On ne peut pas les prendre APRES.
   */
 
 long long	dongle_compute_key(t_coder *coder, t_sim *sim)
@@ -36,9 +40,10 @@ long long	dongle_compute_key(t_coder *coder, t_sim *sim)
 
 	if (sim->config.scheduler == SCHED_FIFO_)
 	{
-		pthread_mutex_lock(&sim->stop_mutex);
-		key = sim->ticket_counter++;
-		pthread_mutex_unlock(&sim->stop_mutex);
+		pthread_mutex_lock(&sim->coder_state_mutex);
+		key = (long long)coder->compiles_done
+			* (long long)sim->config.number_of_coders + coder->id;
+		pthread_mutex_unlock(&sim->coder_state_mutex);
 	}
 	else
 	{

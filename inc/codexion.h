@@ -120,8 +120,6 @@ typedef struct s_sim
 	pthread_mutex_t	log_mutex;
 	pthread_mutex_t	coder_state_mutex;
 
-	long long		ticket_counter;
-
 	pthread_t		monitor;
 
 }	t_sim;

@@ -457,3 +457,8 @@ PROCHAINES ETAPES (ordre suggere)
    - 11.3.1 documente comme limite connue dans le README
    - relire README en entier pour valider chaque affirmation
    - passer norminette sur src/*.c et inc/*.h
+
+
+live coding: Quand tu select EDF quand tu as deux burnout identique, 
+si les 2 codeurs a coter du dongles ont les memes burnout,
+alors privilegier l ID du coder le plus haut.

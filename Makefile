@@ -8,10 +8,23 @@ SRC_DIR		= src
 OBJ_DIR		= obj
 INC_DIR		= inc
 
-SRCS		= $(wildcard $(SRC_DIR)/*.c)
+SRCS		= $(SRC_DIR)/coder.c \
+			  $(SRC_DIR)/dongle.c \
+			  $(SRC_DIR)/dongle_utils.c \
+			  $(SRC_DIR)/log.c \
+			  $(SRC_DIR)/log_burnout.c \
+			  $(SRC_DIR)/main.c \
+			  $(SRC_DIR)/monitor.c \
+			  $(SRC_DIR)/parse_args.c \
+			  $(SRC_DIR)/pqueue.c \
+			  $(SRC_DIR)/pqueue_utils.c \
+			  $(SRC_DIR)/sim.c \
+			  $(SRC_DIR)/sim_run.c \
+			  $(SRC_DIR)/sim_time.c
+
 OBJS		= $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
-HEADERS		= $(wildcard $(INC_DIR)/*.h)
+HEADERS		= $(INC_DIR)/codexion.h
 
 RM			= rm -f
 RMDIR		= rm -rf

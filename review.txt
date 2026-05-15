@@ -1,0 +1,72 @@
+================================================================================
+                   CODEXION - REVUE DU CODE PAR ORDRE CHRONOLOGIQUE
+================================================================================
+
+Objectif : passer chaque fichier 1 par 1, explication + Q/R, pour maitriser
+le code avant la correction. Ordre = ordre de developpement (phases TODO).
+
+================================================================================
+
+PHASE 1 - SETUP DU PROJET
+[ ] inc/codexion.h          (28/04 11:08)  Header unique : types + prototypes
+
+PHASE 2 - PARSING DES ARGUMENTS
+[ ] src/parse_args.c        (28/04 11:08)  Safe atoi, validation, scheduler
+
+PHASE 4 - PRIORITY QUEUE (HEAP MIN)
+[ ] src/pqueue.c            (28/04 12:31)  init / destroy / push / peek / pop
+[ ] src/pqueue_utils.c      (28/04 14:14)  grow / sift_up / sift_down / remove
+
+PHASE 6 - HELPERS DE TEMPS
+[ ] src/sim_time.c          (28/04 16:03)  now_ms / elapsed_ms / precise_sleep
+                                            / ms_to_timespec
+
+PHASE 5 - LOGS SERIALISES
+[ ] src/log.c               (28/04 16:08)  log_event + 4 wrappers d etat
+[ ] src/log_burnout.c       (28/04 16:21)  log_burned_out (cas special : log +
+                                            stop=1 atomiquement)
+
+PHASE 7 - GESTION DES DONGLES
+[ ] src/dongle_utils.c      (29/04 12:10)  compute_key (FIFO/EDF), can_take,
+                                            wait_loop
+[ ] src/dongle.c            (29/04 12:26)  init / destroy / request / release
+
+PHASE 8 - LOGIQUE DU CODER
+[ ] src/coder.c             (12/05 10:47)  routine + take/release/cycle/
+                                            should_continue (deadlock prevention
+                                            pair/impair)
+
+PHASE 9 - MONITOR (DETECTION BURNOUT)
+[ ] src/monitor.c           (12/05 12:24)  routine + check_burnout + check_end
+                                            + signal_all_dongles
+
+PHASE 10 - ORCHESTRATION
+[ ] src/sim.c               (12/05 15:07)  sim_init (mutexes/dongles/coders)
+                                            + sim_destroy
+[ ] src/sim_run.c           (12/05 15:51)  sim_launch / sim_join /
+                                            sim_emergency_stop
+[ ] src/main.c              (28/04 11:09)  parse -> init -> launch -> join ->
+                                            destroy (fichier cree tot, finalise
+                                            en Phase 10)
+
+================================================================================
+                              MODE D EMPLOI
+================================================================================
+
+Pour chaque fichier :
+  1. Tu me dis "on passe a X.c" (ou simplement "suivant")
+  2. Je donne une explication structuree :
+     - role du fichier dans l architecture
+     - fonctions une par une, dans l ordre du fichier
+     - points subtils (locks, race conditions, choix de design)
+     - liens avec les autres fichiers
+  3. Tu poses tes questions, on creuse
+  4. Quand tu es a l aise, on coche [X] et on passe au suivant
+
+================================================================================
+                          APRES LA REVUE DU CODE
+================================================================================
+
+[ ] Passage norme 42 (norminette) sur src/*.c et inc/*.h
+[ ] Verification finale (Phase 13 du TODO)
+[ ] Preparation defense

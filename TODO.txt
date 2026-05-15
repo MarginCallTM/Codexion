@@ -293,82 +293,105 @@ PHASE 10 - MAIN, INITIALISATION ET CLEANUP
          commande : valgrind --leak-check=full --show-leak-kinds=all
                     --track-origins=yes ./codexion 5 800 200 200 200 5 0 fifo
 
-[X] 10.3 Verifier zero data race avec valgrind --tool=helgrind
+[X] 10.3 Verifier zero data race avec valgrind --tool=helgrind / drd
          -> 2026-05-12 : 0 data race (apres fix de precise_sleep_ms qui lisait
             sim->stop sans lock, cf. sim_time.c lignes 41-52)
-         -> 2 warnings "pthread_cond_broadcast: dubious / associated lock not
-            held" subsistent : faux positifs helgrind documentes (cond_timedwait
-            qui expire pile au moment du broadcast). Tous nos broadcasts sont
-            correctement sous mutex (dongle_release, monitor_signal_all_dongles).
+         -> 2026-05-13 : race sur sim->stop dans dongle_wait_loop fixee via
+            flag d->stop_requested protege par d->mutex (commits 643f28d,
+            8e55d45). drd clean sur 2/5/10 coders x FIFO/EDF x normal/burnout.
+         -> 1 warning helgrind restant : "pthread_cond_{signal,broadcast}:
+            dubious : associated lock is not held by any thread" sur
+            cond_timedwait dans dongle_wait_loop. Faux positif connu
+            helgrind 3.18 + glibc 2.35 (nouvelle impl condvar group-based).
+            drd ne le voit pas. Corrige dans valgrind 3.22+.
          commande : valgrind --tool=helgrind ./codexion 5 800 200 200 200 5 0 fifo
+         commande : valgrind --tool=drd      ./codexion 5 800 200 200 200 5 0 fifo
 
 ================================================================================
 PHASE 11 - TESTS
 ================================================================================
 
-[ ] 11.1 Cas qui doivent passer (pas de burnout) :
-     [ ] 11.1.1 ./codexion 5 800 200 200 200 5 0 fifo
-     [ ] 11.1.2 ./codexion 4 410 200 200 200 10 0 fifo
-     [ ] 11.1.3 ./codexion 5 800 200 200 200 7 0 edf
-     [ ] 11.1.4 ./codexion 1 800 200 200 200 5 0 fifo
-                (1 seul coder -> impossible de prendre 2 dongles ?
-                 a clarifier selon ta lecture du sujet)
+[~] 11.1 Cas qui doivent passer (pas de burnout) :
+     [X] 11.1.1 ./codexion 5 800 200 200 200 5 0 fifo
+                -> 25 compiles, ~3s, exit 0 (verifie 2026-05-15)
+     [!] 11.1.2 ./codexion 4 410 200 200 200 10 0 fifo
+                -> ATTENTION : test mal calibre. cycle = compile + debug +
+                   refactor = 200+200+200 = 600ms > burnout 410ms,
+                   donc burnout inevitable. A remplacer par par exemple
+                   ./codexion 4 800 200 200 200 10 0 fifo
+     [X] 11.1.3 ./codexion 5 800 200 200 200 7 0 edf
+                -> pas de burnout (verifie 2026-05-15)
+     [X] 11.1.4 ./codexion 1 800 200 200 200 5 0 fifo
+                -> burnout a 801ms (1 coder = 1 dongle, comportement
+                   attendu, cf. Annexe)
 
-[ ] 11.2 Cas qui doivent burnout rapidement :
-     [ ] 11.2.1 ./codexion 4 310 200 100 100 5 0 fifo
-     [ ] 11.2.2 ./codexion 4 200 150 50 50 10 0 fifo
+[~] 11.2 Cas qui doivent burnout rapidement :
+     [X] 11.2.1 ./codexion 4 310 200 100 100 5 0 fifo
+                -> burnout a 312ms (verifie 2026-05-15)
+     [ ] 11.2.2 ./codexion 4 200 150 50 50 10 0 fifo (a tester)
 
-[ ] 11.3 Cas avec cooldown long
-     [ ] 11.3.1 ./codexion 5 1000 100 100 100 10 200 edf
+[!] 11.3 Cas avec cooldown long
+     [!] 11.3.1 ./codexion 5 1000 100 100 100 10 200 edf
+                -> BUG CONNU : burnout coder 1 a ~1001ms (re-teste 2026-05-15).
+                Cause : strategie pair/impair (option B anti-deadlock) fige
+                l ordre d acquisition ; sous cooldown 200ms, un coder reste
+                bloque sur son 2e dongle pendant que son 1er est libre.
+                EDF n agit qu au niveau heap d UN dongle, pas sur l ordre
+                d acquisition des deux.
+                Options :
+                  A) Marquer comme limite connue, documenter dans README
+                     (recommande : projet deja clean valgrind/helgrind/drd)
+                  B) Refactor vers arbitrator mutex (option C du 7.4.1)
+                  C) Tester avec cooldown plus faible (ex: 100ms)
 
-[ ] 11.4 Tests d entrees invalides (doivent afficher une erreur, pas crash)
-     [ ] 11.4.1 args manquants
-     [ ] 11.4.2 args negatifs
-     [ ] 11.4.3 args non numeriques
-     [ ] 11.4.4 scheduler != fifo / edf
-     [ ] 11.4.5 args avec '+' ou espaces
+[X] 11.4 Tests d entrees invalides (doivent afficher une erreur, pas crash)
+         -> tous valides 2026-05-15 : exit=1, message d erreur, pas de crash
+     [X] 11.4.1 args manquants (0 args, 7 args)
+                -> "Usage: ./codexion ..."
+     [X] 11.4.2 args negatifs (-5, -800, -1 cooldown)
+                -> "Error: invalid argument"
+     [X] 11.4.3 args non numeriques (abc, 0xff, 8.0, chaine vide)
+                -> "Error: invalid argument"
+     [X] 11.4.4 scheduler != fifo / edf (sjf, FIFO majuscule, vide)
+                -> "Error: invalid argument"
+     [X] 11.4.5 args avec '+' ou espaces ou overflow (+5, "5 ", " 5",
+                21474836470 > INT_MAX)
+                -> "Error: invalid argument"
 
-[ ] 11.5 Verifier le format de log
-     [ ] 11.5.1 Aucun log entrelace (chaque ligne complete)
-     [ ] 11.5.2 Le burnout apparait < 10 ms apres l instant theorique
-     [ ] 11.5.3 Aucun log apres "burned out" (sauf eventuellement les
-                logs deja en cours d ecriture serialises)
+[X] 11.5 Verifier le format de log
+         (verifie 2026-05-15 sur ./codexion 10 800 200 200 200 5 0 fifo,
+          245 lignes generees)
+     [X] 11.5.1 Aucun log entrelace : 100% des lignes ont format
+                "<int ts> <int id> <msg>" (verifie par awk)
+     [X] 11.5.2 Burnout < 10 ms apres l instant theorique :
+                5 runs sur 4 310 200 100 100 5 0 fifo -> burnout a
+                311ms (x4) et 312ms (x1), theorique = 310ms, ecart 1-2ms
+     [X] 11.5.3 Aucun log apres "burned out" : verifie par awk,
+                burnout a la derniere ligne du log
 
-[ ] 11.6 Tests de stress
-     [ ] 11.6.1 100 coders, valeurs basses
-     [ ] 11.6.2 Verifier qu il n y a ni starvation ni deadlock
+[X] 11.6 Tests de stress (verifies 2026-05-15)
+     [X] 11.6.1 100 coders : ./codexion 100 800 100 100 100 3 0 fifo
+                -> 300/300 compiles attendus, 0 burnout, ~0.9s wall
+     [X] 11.6.2 Pas de starvation ni deadlock :
+                100 coders FIFO : tous les coders compilent
+                EXACTEMENT 3 fois (min=max=3, moyenne=3.00) -> equite
+                parfaite. Aucun deadlock observe.
+                50 coders EDF (./codexion 50 800 100 100 100 5 0 edf)
+                -> 250/250 compiles, 0 burnout, ~1.4s wall.
+                Valgrind --leak-check sur 20 coders : exit 0, 0 leak.
 
 ================================================================================
 PHASE 12 - README.md
 ================================================================================
 
-[ ] 12.1 Premiere ligne en italique :
-         *This project has been created as part of the 42 curriculum by <login>.*
-
-[ ] 12.2 Section Description (anglais)
-
-[ ] 12.3 Section Instructions
-     [ ] 12.3.1 Compilation : make
-     [ ] 12.3.2 Usage : ./codexion <args>
-     [ ] 12.3.3 Exemples avec sortie attendue
-
-[ ] 12.4 Section Resources
-     [ ] 12.4.1 Liens : Dijkstra Dining Philosophers, man pthread,
-                heap binaire, EDF scheduling
-     [ ] 12.4.2 Description claire de l usage de l IA pour quelles taches
-
-[ ] 12.5 Section Blocking cases handled (obligatoire)
-     [ ] 12.5.1 Deadlock prevention (Coffman conditions)
-     [ ] 12.5.2 Starvation prevention
-     [ ] 12.5.3 Cooldown handling
-     [ ] 12.5.4 Precise burnout detection (<10 ms)
-     [ ] 12.5.5 Log serialization
-
-[ ] 12.6 Section Thread synchronization mechanisms (obligatoire)
-     [ ] 12.6.1 pthread_mutex_t : sur quelles donnees, pourquoi
-     [ ] 12.6.2 pthread_cond_t  : sur quelles attentes, pourquoi
-     [ ] 12.6.3 Exemples concrets de race conditions evitees
-     [ ] 12.6.4 Comment coders et monitor communiquent de maniere safe
+[X] 12.1 Premiere ligne en italique (DONE 2026-05-15, login acombier)
+[X] 12.2 Section Description (anglais)
+[X] 12.3 Section Instructions (make, usage, exemples, valgrind)
+[X] 12.4 Section Resources + usage IA tableau detaille
+[X] 12.5 Section Blocking cases handled (5 sous-sections complete)
+[X] 12.6 Section Thread synchronization mechanisms
+         (5 sous-sections A-E avec refs file:line)
+[X] 12.7 BONUS : Project structure + Known limitations
 
 ================================================================================
 PHASE 13 - REVUE FINALE
@@ -412,6 +435,25 @@ ANNEXE - PIEGES CLASSIQUES A NE PAS OUBLIER
   donc le coder ne peut jamais compiler -> il finira par burnout.
   C est le comportement attendu, ne pas le forcer a un cas special.
 
-Changer l ID du codeur 0 par codeur 1, commencer a compter a partir de 1
-Check les mutex pour stop les helgrind error leak 
+================================================================================
+ANNEXE - NOTES DE FIN / TODO RAPIDES
+================================================================================
 
+[X] Changer l ID du codeur 0 par codeur 1 (commencer a 1)
+    -> DONE : sim.c:94  sim->coders[i].id = i + 1;
+
+[X] Check les mutex pour stop les helgrind errors
+    -> DONE 2026-05-13 (commits 643f28d, 8e55d45). Voir Phase 10.3.
+
+[X] Makefile : retirer $(wildcard ...) -> norme 42 interdit
+    -> DONE 2026-05-15 : SRCS liste 13 .c, HEADERS = codexion.h.
+       make re OK, second make = "Nothing to be done" (pas de relink).
+
+================================================================================
+PROCHAINES ETAPES (ordre suggere)
+================================================================================
+
+1. Phase 13 : norminette + revue finale + prep defense
+   - 11.3.1 documente comme limite connue dans le README
+   - relire README en entier pour valider chaque affirmation
+   - passer norminette sur src/*.c et inc/*.h

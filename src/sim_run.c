@@ -54,7 +54,6 @@ int		sim_launch(t_sim *sim)
 		if(pthread_create(&sim->coders[i].thread, NULL,
 				coder_routine, &sim->coders[i]) != 0)
 					return (sim_emergency_stop(sim, i), 1);
-		usleep(100);
 		i++;
 	}
 	return (0);

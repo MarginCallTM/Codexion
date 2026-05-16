@@ -465,3 +465,4 @@ alors privilegier l ID du coder le plus haut.
 
 
 Check si je dois gerer l erreur de 0 mil de seconde en arguments, comment gerer ce cas d erreur
+test : ./codexion 199 190 60 60 60 20 0 edf

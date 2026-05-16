@@ -31,17 +31,17 @@ long long	elapsed_ms(t_sim *sim)
 void	precise_sleep_ms(long long ms, t_sim *sim)
 {
 	long long	target;
-  int   stop;
+	int			stop;
 
 	target = now_ms() + ms;
-  stop = 0;
+	stop = 0;
 	while (!stop && now_ms() < target)
-  {
-    usleep(100);
-    pthread_mutex_lock(&sim->stop_mutex);
-    stop = sim->stop;
-    pthread_mutex_unlock(&sim->stop_mutex);
-  }
+	{
+		usleep(1000);
+		pthread_mutex_lock(&sim->stop_mutex);
+		stop = sim->stop;
+		pthread_mutex_unlock(&sim->stop_mutex);
+	}
 }
 
 // Convert a Ms timestamp in absolut time

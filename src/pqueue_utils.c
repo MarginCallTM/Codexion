@@ -13,23 +13,23 @@
 #include "codexion.h"
 
 // Check if coder A is priority on coder B
-int		pq_less(t_pqnode a, t_pqnode b)
+int	pq_less(t_pqnode a, t_pqnode b)
 {
-	if(a.key != b.key)
-		return(a.key < b.key);
-	return(a.tiebreak < b.tiebreak);
+	if (a.key != b.key)
+		return (a.key < b.key);
+	return (a.tiebreak < b.tiebreak);
 }
 
 void	sift_up(t_pqueue *q, size_t i)
 {
-	size_t	parent;
+	size_t		parent;
 	t_pqnode	tmp;
-	
-	while(i > 0)
+
+	while (i > 0)
 	{
 		parent = (i - 1) / 2;
-		if(!pq_less(q->data[i], q->data[parent]))
-			break;
+		if (!pq_less(q->data[i], q->data[parent]))
+			break ;
 		tmp = q->data[i];
 		q->data[i] = q->data[parent];
 		q->data[parent] = tmp;
@@ -39,20 +39,20 @@ void	sift_up(t_pqueue *q, size_t i)
 
 void	sift_down(t_pqueue *q, size_t i)
 {
-	size_t	l;
-	size_t	best;
+	size_t		l;
+	size_t		best;
 	t_pqnode	tmp;
 
-	while(1)
+	while (1)
 	{
 		l = 2 * i + 1;
 		best = i;
-		if(l < q->size && pq_less(q->data[l], q->data[best]))
+		if (l < q->size && pq_less(q->data[l], q->data[best]))
 			best = l;
-		if(l + 1 < q->size && pq_less(q->data[l + 1], q->data[best]))
+		if (l + 1 < q->size && pq_less(q->data[l + 1], q->data[best]))
 			best = l + 1;
-		if(best == i)
-			break;
+		if (best == i)
+			break ;
 		tmp = q->data[i];
 		q->data[i] = q->data[best];
 		q->data[best] = tmp;
@@ -61,18 +61,18 @@ void	sift_down(t_pqueue *q, size_t i)
 }
 
 // Enlarge the tab by 2
-int		pq_grow(t_pqueue *q)
+int	pq_grow(t_pqueue *q)
 {
 	t_pqnode	*new_data;
-	size_t	new_cap;
-	size_t	i;
+	size_t		new_cap;
+	size_t		i;
 
 	new_cap = q->capacity * 2;
 	new_data = malloc(sizeof(*new_data) * new_cap);
-	if(!new_data)
+	if (!new_data)
 		return (-1);
 	i = 0;
-	while(i < q->size)
+	while (i < q->size)
 	{
 		new_data[i] = q->data[i];
 		i++;
@@ -84,29 +84,27 @@ int		pq_grow(t_pqueue *q)
 }
 
 // Remove a specific coder in the queue
-int		pq_remove(t_pqueue *q, int coder_id)
+int	pq_remove(t_pqueue *q, int coder_id)
 {
 	size_t	i;
-	i = 0;
 
-	while(i < q->size)
+	i = 0;
+	while (i < q->size)
 	{
-		if(q->data[i].coder_id == coder_id)
+		if (q->data[i].coder_id == coder_id)
 		{
 			q->size--;
-			if(i < q->size)
+			if (i < q->size)
 			{
 				q->data[i] = q->data[q->size];
-				if(i > 0 && pq_less(q->data[i], q->data[(i - 1) / 2]))
+				if (i > 0 && pq_less(q->data[i], q->data[(i - 1) / 2]))
 					sift_up(q, i);
 				else
 					sift_down(q, i);
 			}
-			return(0);
+			return (0);
 		}
 		i++;
 	}
 	return (-1);
 }
-
-

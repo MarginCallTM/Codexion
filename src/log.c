@@ -16,10 +16,10 @@
 void	log_event(t_sim *sim, int coder_id, const char *msg)
 {
 	long long	ts;
-	
+
 	pthread_mutex_lock(&sim->log_mutex);
 	pthread_mutex_lock(&sim->stop_mutex);
-	if(sim->stop)
+	if (sim->stop)
 	{
 		pthread_mutex_unlock(&sim->stop_mutex);
 		pthread_mutex_unlock(&sim->log_mutex);

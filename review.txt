@@ -27,25 +27,25 @@ PHASE 5 - LOGS SERIALISES
                                             stop=1 atomiquement)
 
 PHASE 7 - GESTION DES DONGLES
-[ ] src/dongle_utils.c      (29/04 12:10)  compute_key (FIFO/EDF), can_take,
+[X] src/dongle_utils.c      (29/04 12:10)  compute_key (FIFO/EDF), can_take,
                                             wait_loop
-[ ] src/dongle.c            (29/04 12:26)  init / destroy / request / release
+[X] src/dongle.c            (29/04 12:26)  init / destroy / request / release
 
 PHASE 8 - LOGIQUE DU CODER
-[ ] src/coder.c             (12/05 10:47)  routine + take/release/cycle/
+[X] src/coder.c             (12/05 10:47)  routine + take/release/cycle/
                                             should_continue (deadlock prevention
                                             pair/impair)
 
 PHASE 9 - MONITOR (DETECTION BURNOUT)
-[ ] src/monitor.c           (12/05 12:24)  routine + check_burnout + check_end
+[X] src/monitor.c           (12/05 12:24)  routine + check_burnout + check_end
                                             + signal_all_dongles
 
 PHASE 10 - ORCHESTRATION
-[ ] src/sim.c               (12/05 15:07)  sim_init (mutexes/dongles/coders)
+[X] src/sim.c               (12/05 15:07)  sim_init (mutexes/dongles/coders)
                                             + sim_destroy
-[ ] src/sim_run.c           (12/05 15:51)  sim_launch / sim_join /
+[X] src/sim_run.c           (12/05 15:51)  sim_launch / sim_join /
                                             sim_emergency_stop
-[ ] src/main.c              (28/04 11:09)  parse -> init -> launch -> join ->
+[X] src/main.c              (28/04 11:09)  parse -> init -> launch -> join ->
                                             destroy (fichier cree tot, finalise
                                             en Phase 10)
 

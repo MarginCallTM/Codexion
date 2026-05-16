@@ -16,7 +16,7 @@
 long long	now_ms(void)
 {
 	struct timeval	tv;
-	
+
 	gettimeofday(&tv, NULL);
 	return ((long long)tv.tv_sec * 1000LL + (long long)tv.tv_usec / 1000LL);
 }

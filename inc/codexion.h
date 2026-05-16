@@ -6,7 +6,7 @@
 /*   By: acombier <acombier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/28 11:08:59 by acombier          #+#    #+#             */
-/*   Updated: 2026/05/15 11:22:23 by acombier         ###   ########.fr       */
+/*   Updated: 2026/05/16 12:36:35 by acombier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,8 @@ typedef enum e_scheduler
 	SCHED_EDF
 } t_scheduler;
 
+
+// Saves the simulation settings
 typedef struct s_config
 {
 	int		number_of_coders;
@@ -39,7 +41,7 @@ typedef struct s_config
 	t_scheduler		scheduler;
 }	t_config;
 
-
+// Represents the state of the simulation
 typedef enum e_state
 {
 	STATE_COMPILING,
@@ -53,7 +55,7 @@ typedef struct s_dongle		t_dongle;
 typedef struct s_coder		t_coder;
 typedef struct s_sim	t_sim;
 
-
+// Represents a shared resource protected by a mutex
 typedef struct s_dongle
 {
 	int		id;
@@ -69,7 +71,7 @@ typedef struct s_dongle
 
 }	t_dongle;
 
-
+// Represents a coder/thread
 typedef struct s_coder
 {
 	int		id;
@@ -83,7 +85,7 @@ typedef struct s_coder
 		
 }	t_coder;
 
-
+// Represents the entire simulation
 typedef struct s_sim
 {
 	t_config		config;
@@ -101,15 +103,8 @@ typedef struct s_sim
 
 }	t_sim;
 
-  /*                                                                                                                                                                                                               
-  ** Noeud du heap.
-  **   coder_id : qui attend dans la file
-  **   key      : cle de tri (ticket FIFO ou deadline EDF, calculee par                                                                                                                                            
-  **              l appelant ; le heap ne sait pas lequel des deux c est)                                                                                                                                          
-  **   tiebreak : departage les keys egales pour rester deterministe                                                                                                                                               
-  **              (on prend coder_id, qui est unique par construction)                                                                                                                                             
-  */ 
 
+// Represents a coder in a priority queue
 typedef struct s_pqnode
 {
 	int		coder_id;
@@ -117,7 +112,7 @@ typedef struct s_pqnode
 	long long tiebreak;			
 }	t_pqnode;
 
-
+// Priority queue for managing access to dongles
 struct s_pqueue
 {
 	t_pqnode	*data;

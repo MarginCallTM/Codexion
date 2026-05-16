@@ -6,7 +6,7 @@
 /*   By: acombier <acombier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/28 11:08:54 by acombier          #+#    #+#             */
-/*   Updated: 2026/05/15 10:14:34 by acombier         ###   ########.fr       */
+/*   Updated: 2026/05/16 13:45:52 by acombier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,7 @@ static int	ft_safe_atoll(const char *s, long long *out)
 	return (0);
 }
 
+// Convert a string in INT
 static int	parse_int(const char *s, int *out)
 {
 	long long	tmp;
@@ -54,7 +55,7 @@ static int	parse_int(const char *s, int *out)
 	return (0);
 }
 
-
+// Convert a string in enum
 static int parse_scheduler(const char *s, t_scheduler *out)
 {
 	if(!s)
@@ -72,7 +73,7 @@ static int parse_scheduler(const char *s, t_scheduler *out)
 	return (-1);
 }
 
-
+// Check if args coders > 0 and args compile > 0
 static int validate_config(const t_config *cfg)
 {
 	if(cfg->number_of_coders <= 0)

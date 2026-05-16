@@ -6,31 +6,13 @@
 /*   By: acombier <acombier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/28 16:21:52 by acombier          #+#    #+#             */
-/*   Updated: 2026/04/29 11:59:58 by acombier         ###   ########.fr       */
+/*   Updated: 2026/05/16 15:25:13 by acombier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
- /*              
-  ** Cas special : le burnout DOIT etre logge meme (et surtout) si stop
-  ** vient d etre mis a 1. Donc on duplique la logique de log_event sans                                                    
-  ** le check "if (sim->stop) return".
-  **                                                                                                                        
-  ** Cette fonction fait DEUX choses atomiquement, sous log_mutex :
-  **   1. log "<ts> <id> burned out"                                                                                        
-  **   2. set sim->stop = 1
-  ** Ensemble, sous le meme lock, pour qu aucun autre log ne puisse                                                         
-  ** s intercaler entre l ecriture du burnout et la propagation du stop.                                                    
-  **                                                                                                                        
-  ** Le check "if (sim->stop) return" en debut sert a un autre cas : si                                                     
-  ** plusieurs coders burnent simultanement, seul le premier doit imprimer                                                  
-  ** "burned out". Les suivants voient stop deja a 1 et abandonnent                                                         
-  ** silencieusement (le burnout du premier coder declenche l arret).                                                       
-  **                                                                                                                        
-  ** Ordre des locks respecte : log_mutex puis stop_mutex.                                                                  
-  */
-
+// Print burnout only 1 time
 void	log_burned_out(t_sim *sim, int coder_id)
 {
 	long long	ts;

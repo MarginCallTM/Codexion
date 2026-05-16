@@ -6,18 +6,13 @@
 /*   By: acombier <acombier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/28 12:31:20 by acombier          #+#    #+#             */
-/*   Updated: 2026/04/28 13:10:57 by acombier         ###   ########.fr       */
+/*   Updated: 2026/05/16 14:05:57 by acombier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
-  /*              
-  ** initial_capacity = 0 -> on prend 8 par defaut (heap auto-extensible).
-  ** L appelant peut aussi passer config.number_of_coders si on veut eviter                                                                                                                                        
-  ** tout realloc (un dongle a au plus N waiters).                                                                                                                                                                 
-  */
-
+// Create an priority queue
 t_pqueue	*pq_init(size_t initial_capacity)
 {
 	t_pqueue	*q;
@@ -35,10 +30,7 @@ t_pqueue	*pq_init(size_t initial_capacity)
 	return(q);	
 }
 
-  /*
-  ** Tolere q == NULL (idiome free()) pour simplifier les chemins de cleanup.
-  */ 
-
+// free and destroy the queue
 void	pq_destroy(t_pqueue *q)
 {
 	if(!q)
@@ -47,12 +39,7 @@ void	pq_destroy(t_pqueue *q)
 	free(q);
 }
 
- /*                                                                                                                                                                                                               
-  ** O(log n). On ajoute en fin (preserve la propriete d arbre quasi-complet)
-  ** puis on fait remonter l element a sa bonne place. Retourne -1 si la                                                                                                                                           
-  ** reallocation a echoue.                                                                                                                                                                                        
-  */ 
- 
+// Add a coder in the queue
 int		pq_push(t_pqueue *q, int coder_id, long long key)
 {
 	if(q->size == q->capacity && pq_grow(q) != 0)
@@ -65,13 +52,7 @@ int		pq_push(t_pqueue *q, int coder_id, long long key)
 	return (0);
 }
 
-  /*
-  ** Lecture seule : on ne modifie pas la file. Retourne -1 si vide pour
-  ** distinguer "pas de tete" d une "tete avec coder_id == 0" (id valide).                                                                                                                                         
-  ** *out non touche en cas d echec.                                                                                                                                                                               
-  */  
-
-
+// Check the most prioritary in the queue
 int pq_peek(const t_pqueue *q, t_pqnode *out)
 {
 	if(q->size == 0)
@@ -80,11 +61,7 @@ int pq_peek(const t_pqueue *q, t_pqnode *out)
 	return (0);
 }
 
-  /*
-  ** O(log n). On sauve la racine, on met le dernier element au sommet
-  ** et on le fait redescendre. Le caller recupere la valeur via *out.                                                                                                                                             
-  */ 
-
+// Remove the priority coders in the queue
 int pq_pop(t_pqueue *q, t_pqnode *out)
 {
 	if(q->size == 0)

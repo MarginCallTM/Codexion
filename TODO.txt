@@ -462,3 +462,6 @@ PROCHAINES ETAPES (ordre suggere)
 live coding: Quand tu select EDF quand tu as deux burnout identique, 
 si les 2 codeurs a coter du dongles ont les memes burnout,
 alors privilegier l ID du coder le plus haut.
+
+
+Check si je dois gerer l erreur de 0 mil de seconde en arguments, comment gerer ce cas d erreur

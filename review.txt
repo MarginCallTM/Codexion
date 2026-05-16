@@ -8,22 +8,22 @@ le code avant la correction. Ordre = ordre de developpement (phases TODO).
 ================================================================================
 
 PHASE 1 - SETUP DU PROJET
-[ ] inc/codexion.h          (28/04 11:08)  Header unique : types + prototypes
+[X] inc/codexion.h          (28/04 11:08)  Header unique : types + prototypes
 
 PHASE 2 - PARSING DES ARGUMENTS
-[ ] src/parse_args.c        (28/04 11:08)  Safe atoi, validation, scheduler
+[X] src/parse_args.c        (28/04 11:08)  Safe atoi, validation, scheduler
 
 PHASE 4 - PRIORITY QUEUE (HEAP MIN)
-[ ] src/pqueue.c            (28/04 12:31)  init / destroy / push / peek / pop
-[ ] src/pqueue_utils.c      (28/04 14:14)  grow / sift_up / sift_down / remove
+[X] src/pqueue.c            (28/04 12:31)  init / destroy / push / peek / pop
+[X] src/pqueue_utils.c      (28/04 14:14)  grow / sift_up / sift_down / remove
 
 PHASE 6 - HELPERS DE TEMPS
-[ ] src/sim_time.c          (28/04 16:03)  now_ms / elapsed_ms / precise_sleep
+[X] src/sim_time.c          (28/04 16:03)  now_ms / elapsed_ms / precise_sleep
                                             / ms_to_timespec
 
 PHASE 5 - LOGS SERIALISES
-[ ] src/log.c               (28/04 16:08)  log_event + 4 wrappers d etat
-[ ] src/log_burnout.c       (28/04 16:21)  log_burned_out (cas special : log +
+[X] src/log.c               (28/04 16:08)  log_event + 4 wrappers d etat
+[X] src/log_burnout.c       (28/04 16:21)  log_burned_out (cas special : log +
                                             stop=1 atomiquement)
 
 PHASE 7 - GESTION DES DONGLES
